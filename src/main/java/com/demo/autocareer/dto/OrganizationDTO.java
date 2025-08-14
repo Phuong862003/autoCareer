@@ -2,6 +2,8 @@ package com.demo.autocareer.dto;
 
 import java.io.Serializable;
 
+import com.demo.autocareer.dto.response.UserDTOResponse;
+import com.demo.autocareer.model.User;
 import com.demo.autocareer.model.enums.OrganizationType;
 
 import jakarta.persistence.Column;
@@ -25,7 +27,8 @@ public class OrganizationDTO implements Serializable{
     private int member;
     private String websiteUrl;
     private String description;
+    private String address;
     private String logo_img;
     private String banner_img;
-    // User user;
+    UserDTOResponse user;
 }

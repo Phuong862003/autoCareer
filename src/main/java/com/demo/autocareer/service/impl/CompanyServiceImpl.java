@@ -1,7 +1,9 @@
 package com.demo.autocareer.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.InternshipApprovedDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
+import com.demo.autocareer.dto.response.CompanyStaticDTOResponse;
 import com.demo.autocareer.dto.response.InternshipApprovedDTOResponse;
 import com.demo.autocareer.dto.response.InternshipRequestDTOResponse;
 import com.demo.autocareer.dto.response.JobDTOResponse;
@@ -35,6 +38,8 @@ import com.demo.autocareer.model.InternshipRequest;
 import com.demo.autocareer.model.Job;
 import com.demo.autocareer.model.JobProvince;
 import com.demo.autocareer.model.Organization;
+import com.demo.autocareer.model.enums.ApplyJobStatus;
+import com.demo.autocareer.model.enums.JobStatus;
 import com.demo.autocareer.model.enums.OrganizationType;
 import com.demo.autocareer.model.enums.StatusRequest;
 import com.demo.autocareer.repository.ApplyJobRepository;
@@ -73,6 +78,8 @@ public class CompanyServiceImpl implements CompanyService{
     private InternshipApprovedMapper internshipApprovedMapper;
     @Autowired
     private InternshipMapper internshipMapper;
+    @Autowired
+    private JobDetailRepository jobRepository;
 
     private final BaseSpecification<Job> baseSpecification = new BaseSpecification<>();
     private final BaseSpecification<Organization> baseSpecificationCompany = new BaseSpecification<>();
@@ -86,12 +93,23 @@ public class CompanyServiceImpl implements CompanyService{
     }
 
     @Override
+    public OrganizationDTO getProfileCompany(){
+        Organization company = getCompanyFromToken();
+        OrganizationDTO dto = organizationMapper.mapEntityToResponse(company);
+        return dto;
+    }
+    
+    @Override
     public BasePageResponse<JobDTOResponse> getAllJobs(BaseFilterRequest request,Pageable pageable){
         Organization company = getCompanyFromToken();
+        if (request.getFilters() != null) {
+            request.setFilters(new HashMap<>(request.getFilters())); // clone
+            request.getFilters().remove("jobStatus"); // enumField đang dùng
+        }
         Specification<Job> spec = baseSpecification
-                .build(request, "job.title", "jobStatus", "createdAt", null, null)
+                .build(request, "title", "jobStatus", "createdAt", null, null)
                 .and((root, query, cb) -> cb.equal(root.get("organization"), company));
-        Sort sort = baseSpecification.buildSort(request, "job.title");
+        Sort sort = baseSpecification.buildSort(request, "title");
         Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         Page<Job> page = jobDetailRepository.findAll(spec, sortPageable);
@@ -199,5 +217,33 @@ public class CompanyServiceImpl implements CompanyService{
         Page<InternshipRequest> page = internshipRequestRepository.findAll(spec, sortPageable);
         Page<InternshipRequestDTOResponse> result = page.map(internshipMapper::mapEntityToResponse);
         return PageUtils.fromPage(result);
+    }
+
+    @Override
+    public CompanyStaticDTOResponse getStaticCompany(){
+        Organization company = getCompanyFromToken();
+        Long companyId = company.getId();
+        long totalJobs = jobRepository.countAllByOrganization_Id(companyId);
+        long activeJobs = jobRepository.countByOrganization_IdAndJobStatus(companyId, JobStatus.OPEN);
+        long expiredJobs = jobRepository.countByOrganization_IdAndJobStatus(companyId, JobStatus.CLOSING);
+        long pendingJobs = jobRepository.countByOrganization_IdAndJobStatus(companyId, JobStatus.PENDING);
+
+        long totalApplicants = applyJobRepository.countByJob_Organization_Id(companyId);
+        long hiredApplicants = applyJobRepository.countByJob_Organization_IdAndApplyJobStatus(companyId, ApplyJobStatus.ACCEPTED);
+
+        Map<Integer, Long> monthlyStats = new HashMap<>();
+        for (Object[] row : jobRepository.countJobsByMonth(companyId)) {
+            monthlyStats.put((Integer) row[0], (Long) row[1]);
+        }
+
+        return CompanyStaticDTOResponse.builder()
+                .totalJobs(totalJobs)
+                .activeJobs(activeJobs)
+                .expiredJobs(expiredJobs)
+                .pendingJobs(pendingJobs)
+                .totalApplicants(totalApplicants)
+                .hiredApplicants(hiredApplicants)
+                .monthlyJobStats(monthlyStats)
+                .build();
     }
 }

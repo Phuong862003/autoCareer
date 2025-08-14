@@ -6,8 +6,10 @@ import java.util.List;
 import com.demo.autocareer.dto.FieldDTO;
 import com.demo.autocareer.dto.OrganizationDTO;
 import com.demo.autocareer.dto.ProvinceDTO;
+import com.demo.autocareer.dto.SubFieldDTO;
 import com.demo.autocareer.model.JobProvince;
 import com.demo.autocareer.model.Organization;
+import com.demo.autocareer.model.SubField;
 import com.demo.autocareer.model.enums.Gender;
 import com.demo.autocareer.model.enums.JobStatus;
 import com.demo.autocareer.model.enums.WorkingType;
@@ -26,6 +28,7 @@ import lombok.Setter;
 @Getter
 @Data
 public class JobDTOResponse implements Serializable{
+    private Long id;
     private String title;
     private String description;
     private String requirement;

@@ -2,6 +2,7 @@ package com.demo.autocareer.dto.request;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -31,6 +32,8 @@ public class BaseFilterRequest {
 
     private Long provinceId;
 
+    private Map<String, String> filters;
+
     public String getKeyword() {
         return keyword;
     }
@@ -57,5 +60,13 @@ public class BaseFilterRequest {
 
     public Long getProvinceId() {
         return provinceId;
+    }
+
+    public Map<String, String> getFilters(){
+        return filters;
+    }
+
+    public void setFilters(Map<String, String> filters){
+        this.filters = filters;
     }
 }

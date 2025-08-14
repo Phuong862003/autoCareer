@@ -6,6 +6,7 @@ import lombok.Data;
 public class ResetPasswordRequest {
     private String token;
     private String newPassword;
+    private String repeatPassword;
 
     public String getToken(){
         return token;
@@ -13,5 +14,9 @@ public class ResetPasswordRequest {
 
     public String getNewPassword(){
         return newPassword;
+    }
+
+    public String getRepeatPassword(){
+        return repeatPassword;
     }
 }

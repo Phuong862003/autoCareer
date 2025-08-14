@@ -106,9 +106,8 @@ public class StudentServiceImpl implements StudentService {
 
 
     @Override
-    public StudentDTOResponse getProfileById(Long id){
-        Student student = studentRepository.findById(id)
-            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.STUDENT_NOT_FOUND));
+    public StudentDTOResponse getProfileById(){
+        Student student = getStudentFromToken();
         StudentDTOResponse response = studentMapper.mapEntityToResponse(student);
         return response;
 

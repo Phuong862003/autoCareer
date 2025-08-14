@@ -26,5 +26,5 @@ public interface  AuthService {
     boolean verifyToken(String token);
     void changePassword(ChangePasswordRequest changePasswordRequest);
     void sendResetPasswordEmail(String email);
-    void resetPassword(String token, String newPassword);
+    void resetPassword(String token, String newPassword, String repeatPassword);
 }

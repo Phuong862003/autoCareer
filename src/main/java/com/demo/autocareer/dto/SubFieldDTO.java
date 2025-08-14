@@ -13,8 +13,4 @@ import lombok.Setter;
 public class SubFieldDTO implements Serializable{
     private Long id;
     private String sub_field_name;
-    private FieldDTO field;
-    public String getName() {
-        return sub_field_name;
-    }
 }

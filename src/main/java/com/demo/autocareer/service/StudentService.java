@@ -18,7 +18,7 @@ import com.demo.autocareer.model.Student;
 
 @Service
 public interface StudentService {
-    StudentDTOResponse getProfileById(Long id);
+    StudentDTOResponse getProfileById();
     Student getStudentFromToken();
     StudentDTOResponse updateProfile(StudentDTO studentDTO);
     String uploadCV(MultipartFile file);

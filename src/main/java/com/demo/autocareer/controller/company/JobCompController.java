@@ -1,5 +1,9 @@
 package com.demo.autocareer.controller.company;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,6 +42,16 @@ public class JobCompController {
         this.companyService = companyService;
     }
 
+    @GetMapping("/profile")
+    public ResponseData<?> getProfileCompany() {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(companyService.getProfileCompany())
+                .build();
+    }
+    
+
     @PostMapping("/create-job")
     public ResponseData<?> createJob(@RequestBody JobDTORequest request) {
         return ResponseData.builder()
@@ -67,7 +81,16 @@ public class JobCompController {
     } 
 
     @GetMapping("/list-job")
-    public ResponseData<BasePageResponse<JobDTOResponse>> getJobComp(@ModelAttribute BaseFilterRequest request,@ModelAttribute BasePageRequest basePageRequest) {
+    public ResponseData<BasePageResponse<JobDTOResponse>> getJobComp(@ModelAttribute BaseFilterRequest request,
+                                    @ModelAttribute BasePageRequest basePageRequest,
+                                    @RequestParam Map<String, String> allRequestParams) {
+        Map<String, String> filters = new HashMap<>(allRequestParams);
+        filters.keySet().removeAll(Set.of(
+            "keyword", "enumValue", "createdAtFrom", "createdAtTo",
+            "sortDirection", "districtId", "provinceId", "page", "size"
+        ));
+
+        request.setFilters(filters);
         Pageable pageable = basePageRequest.toPageable();
 
         BasePageResponse<JobDTOResponse> result = companyService.getAllJobs(request, pageable);
@@ -91,4 +114,23 @@ public class JobCompController {
                 .data(result)
                 .build();
     }
+
+    @GetMapping("/stats")
+    public ResponseData<?> getCompanyStats() {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("DELETE SUCCESS")
+                .data(companyService.getStaticCompany())
+                .build();
+    }
+
+    @GetMapping("/job-detail/{id}")
+    public ResponseData<?> getJobDetail(@PathVariable Long id) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(jobDetailService.getJobDetail(id))
+                .build();
+    }
+    
 }

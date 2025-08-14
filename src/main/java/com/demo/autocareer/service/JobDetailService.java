@@ -12,6 +12,7 @@ import com.demo.autocareer.model.User;
 
 public interface  JobDetailService {
     Organization getCompanyFromToken();
+    JobDTOResponse getJobDetail(Long id);
     JobDTOResponse createJob(JobDTORequest request);
     JobDTOResponse updateJob(Long id, JobDTORequest request);
     void deleteJob(Long id);

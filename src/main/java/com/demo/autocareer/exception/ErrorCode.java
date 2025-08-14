@@ -14,6 +14,8 @@ public enum ErrorCode {
     INTERN_DECLARE_NOTE("INTERN_DECLARE_NOTE", "Yêu cầu nhập lý do từ chối", 400),
     INTERN_REQUEST_PENDING("INTERN_REQUEST_PENDING", "Chỉ được duyệt yêu cầu ở trạng thái chờ", 400),
     INTERN_REQUEST_APPROVED("INTERN_REQUEST_APPROVED", "Yêu cầu thực tập chưa được doanh nghiệp chấp nhận", 400),
+    PASSWORDS_DO_NOT_MATCH("PASSWORDS_DO_NOT_MATCH", "Mật khẩu không khớp", 400),
+    DISTRICT_NOT_IN_PROVINCE("DISTRICT_NOT_IN_PROVINCE", "Khong ton tai district ung voi provice", 400),
 
     // 403 - Forbidden
     ACCESS_DENIED("ACCESS_DENIED", "Bạn không có quyền truy cập", 403),
@@ -35,6 +37,9 @@ public enum ErrorCode {
     UNIVERSITY_NOT_FOUND("UNIVERSITY_NOT_FOUND", "Không tìm thấy trường đại học", 404),
     INTERN_DECLARE_NOT_FOUND("INTERN_DECLARE_NOT_FOUND", "khong tim thay du lieu cua intern declare", 404),
     INTERN_REQUEST_NOT_FOUND("INTERN_REQUEST_NOT_FOUND", "khong tim thay internship request hop le", 404),
+    PROVINCE_NOT_FOUND("PROVINCE_NOT_FOUND", "Khong tim thay province", 404),
+    ORGANIZATION_NAME_REQUIRED("ORGANIZATION_NAME_REQUIRED", "Yeu cau nhap organizationName", 404),
+    FIELD_NOT_FOUND("FIELD_NOT_FOUND", "Không tìm thấy field", 404),
 
     // 500 - Internal Server Error
     EMAIL_SEND_FAIL("EMAIL_SEND_FAIL", "Không thể gửi email", 500);
