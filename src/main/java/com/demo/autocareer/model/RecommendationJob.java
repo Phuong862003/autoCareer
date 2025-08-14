@@ -4,8 +4,6 @@ import java.io.Serializable;
 
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,31 +14,27 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Setter
-@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "district")
-public class District extends BaseEntity<Long> implements Serializable{
-    @Column(name = "district_name")
-    String district_name;
+@Table(name = "recommendation_job")
+public class RecommendationJob extends BaseEntity<Long> implements Serializable{
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "student_id", nullable = false)
+    Student student;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "province_id", nullable = false)
-    @JsonIgnore
-    Province province;
+    @JoinColumn(name = "job_id", nullable = false)
+    Job job;
 
-    public Province getProvince() {
-        return province;
-    }
+    @Column(name = "score")
+    Double score;
+
 }

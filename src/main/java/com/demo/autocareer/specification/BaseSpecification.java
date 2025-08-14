@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -35,6 +36,15 @@ public class BaseSpecification<T> {
 
             if (StringUtils.hasText(request.getEnumValue()) && enumField != null) {
                 predicates.add(cb.equal(getPath(root, enumField).as(String.class), request.getEnumValue()));
+            }
+
+            Map<String, String> filters = request.getFilters();
+            if (filters != null && !filters.isEmpty()) {
+                for (Map.Entry<String, String> entry : filters.entrySet()) {
+                    if (StringUtils.hasText(entry.getValue())) {
+                        predicates.add(cb.equal(getPath(root, entry.getKey()).as(String.class), entry.getValue()));
+                    }
+                }
             }
 
             if (request.getCreatedAtFrom() != null && createdAtField != null) {

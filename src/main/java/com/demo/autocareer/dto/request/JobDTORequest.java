@@ -1,6 +1,7 @@
 package com.demo.autocareer.dto.request;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.demo.autocareer.dto.FieldDTO;
 import com.demo.autocareer.dto.OrganizationDTO;
@@ -34,6 +35,9 @@ public class JobDTORequest implements Serializable{
     private String working_time;
     WorkingType workingType;
     private String working_address;
-    OrganizationDTO organization;
-    FieldDTO field;
+    List<Long> subfieldIds;
+
+    public List<Long> getSubFieldIds(){
+        return subfieldIds;
+    }
 }

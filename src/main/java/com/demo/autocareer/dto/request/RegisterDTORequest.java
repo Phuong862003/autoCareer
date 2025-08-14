@@ -5,6 +5,7 @@ import java.io.Serializable;
 import com.demo.autocareer.model.District;
 import com.demo.autocareer.model.Role;
 import com.demo.autocareer.model.enums.AccountStatus;
+import com.demo.autocareer.model.enums.OrganizationType;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -30,21 +31,34 @@ public class RegisterDTORequest implements Serializable {
     @NotBlank(message = "Password must not blank")
     String password;
 
+    @NotBlank(message = "Password must not blank")
+    String repeatPassword;
+
     @NotBlank(message = "Phone must not blank")
     @Pattern(regexp = "^0\\d{9}$")
     String phoneNumber;
 
     Long managerId;
 
-    District district;
+    // District district;
+    Long districtId;
 
-    @NotNull(message = "Role must not be null")
+    Long provinceId;
+
+    String organizationName;
+
+    OrganizationType organizationType;
+
     Role role;
 
     AccountStatus accountStatus;
 
     public String getPassword() {
         return password;
+    }
+
+    public String getRepeatPassword() {
+        return repeatPassword;
     }
 
     public RegisterDTORequest(String email) {
@@ -67,7 +81,23 @@ public class RegisterDTORequest implements Serializable {
         return managerId;
     }
 
-    public District getDistrict(){
-        return district;
+    public Long getDistrictId(){
+        return districtId;
     }
+
+    public Long getProvinceId(){
+        return provinceId;
+    }
+
+    public String getOrganizationName(){
+        return organizationName;
+    }
+
+    public OrganizationType getOrganizationType(){
+        return organizationType;
+    }
+    // public District getDistrict(){
+    //     return district;
+    // }
+
 }

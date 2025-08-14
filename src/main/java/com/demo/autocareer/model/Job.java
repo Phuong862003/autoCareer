@@ -18,6 +18,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -53,10 +55,10 @@ public class Job extends BaseEntity<Long> implements Serializable{
     String welfare;
 
     @Column(name = "salary_start")
-    int salary_start;
+    Integer salary_start;
 
     @Column(name = "salary_end")
-    int salary_end;
+    Integer salary_end;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
@@ -93,6 +95,14 @@ public class Job extends BaseEntity<Long> implements Serializable{
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
     private List<JobProvince> jobProvinces;
 
+    @ManyToMany
+    @JoinTable(
+        name = "jobsubfield",
+        joinColumns = @JoinColumn(name = "job_id"),
+        inverseJoinColumns = @JoinColumn(name = "sub_field_id")
+    )
+    private List<SubField> subFields;
+
     public String getTitle() {
         return title;
     }
@@ -125,19 +135,19 @@ public class Job extends BaseEntity<Long> implements Serializable{
         this.welfare = welfare;
     }
 
-    public int getSalary_start() {
+    public Integer getSalary_start() {
         return salary_start;
     }
 
-    public void setSalary_start(int salary_start) {
+    public void setSalary_start(Integer salary_start) {
         this.salary_start = salary_start;
     }
 
-    public int getSalary_end() {
+    public Integer getSalary_end() {
         return salary_end;
     }
 
-    public void setSalary_end(int salary_end) {
+    public void setSalary_end(Integer salary_end) {
         this.salary_end = salary_end;
     }
 
@@ -205,4 +215,11 @@ public class Job extends BaseEntity<Long> implements Serializable{
         return field;
     }
 
+    public void setSubFields(List<SubField> subFields){
+        this.subFields = subFields;
+    }
+
+    public List<SubField> getSubFields(){
+        return subFields;
+    }
 }

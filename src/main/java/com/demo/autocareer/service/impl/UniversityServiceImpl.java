@@ -240,21 +240,11 @@ public class UniversityServiceImpl implements UniversityService{
         try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
             Sheet sheet = workbook.getSheetAt(0);
             FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-            // int rowNum = 0;
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if(row.getRowNum() == 0) continue;
-                // if (rowNum++ == 0) continue; // Skip header
-                // if (row == null || isRowEmpty(row)) {
-                //     log.warn("⚠️ Bỏ qua dòng rỗng số {}", row.getRowNum());
-                //     continue;
-                // }
 
-                // if (row.getLastCellNum() < 9) {
-                //     log.warn("❗ Dòng {} có số lượng cột không đủ ({}). Bỏ qua.", row.getRowNum(), row.getLastCellNum());
-                //     continue;
-                // }
                 StudentDTO dto = new StudentDTO();
                 dto.setName(getSafeStringCell(row, 0, formatter, evaluator));
                 dto.setStudentCode(getSafeStringCell(row, 1, formatter, evaluator));
@@ -290,9 +280,6 @@ public class UniversityServiceImpl implements UniversityService{
             log.error("❌ Lỗi khi đọc file Excel", e);
             throw new RuntimeException("Lỗi khi đọc file: " + e.getMessage());
         }
-
-        // if (!errorRows.isEmpty()) {
-        // }
 
         return students;
     }

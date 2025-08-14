@@ -56,6 +56,9 @@ public class Organization extends BaseEntity<Long> implements Serializable{
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name="address")
+    private String address;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "organization_type")
     OrganizationType organizationType;
@@ -63,4 +66,12 @@ public class Organization extends BaseEntity<Long> implements Serializable{
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     User user;
+
+    public void setOrganizationName(String organizationName){
+        this.organizationName = organizationName;
+    }
+
+    public void setOrganizationType(OrganizationType organizationType){
+        this.organizationType = organizationType;
+    }
 }

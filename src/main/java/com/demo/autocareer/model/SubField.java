@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Cacheable;
@@ -37,6 +38,10 @@ public class SubField extends BaseEntity<Long> implements Serializable{
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "field_id", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     Field field;
+
+    public Field getField(){
+        return field;
+    }
 }

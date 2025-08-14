@@ -1,6 +1,7 @@
 package com.demo.autocareer.controller;
 
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.http.HttpStatus;
@@ -25,14 +26,18 @@ import com.demo.autocareer.model.enums.AccountStatus;
 import com.demo.autocareer.model.enums.RoleEnum;
 import com.demo.autocareer.service.AuthService;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import com.demo.autocareer.model.User;
+import com.demo.autocareer.utils.JwtUtil;
 
 
 
@@ -42,9 +47,13 @@ public class AuthController {
 
     private final AuthService authService;
 
-    public AuthController(AuthService authService) {
+    private final JwtUtil jwtUtil;
+
+    public AuthController(AuthService authService, JwtUtil jwtUtil) {
         this.authService = authService;
+        this.jwtUtil = jwtUtil;
     }
+
 
     @PostMapping("/login")
     public ResponseData<?> login(@RequestBody LoginRequest request) {
@@ -85,11 +94,13 @@ public class AuthController {
     }
     
     @GetMapping("/verify")
-    public ResponseData<?> verify(@RequestParam String token) {
+    public void verify(@RequestParam String token, HttpServletResponse response) throws IOException {
         boolean result = authService.verifyToken(token);
-        return result
-            ? ResponseData.builder().status(200).message("Xác thực thành công").build()
-            : ResponseData.builder().status(400).message("Token không hợp lệ hoặc đã hết hạn").build();
+        if (result) {
+            response.sendRedirect("http://localhost:3000/auth/register?status=success");
+        } else {
+            response.sendRedirect("http://localhost:3000/auth/register?status=fail");
+        }
     }
     
     @PutMapping("/change-password")
@@ -112,9 +123,29 @@ public class AuthController {
             .build();
     }
 
+    @GetMapping("/reset-password-link")
+    public void handleResetPasswordLink(@RequestParam String token, HttpServletResponse response) throws IOException {
+        String email = jwtUtil.getEmailFromVerificationToken(token);
+        if (email == null) {
+            response.sendRedirect("http://localhost:3000/reset-password-invalid");
+            return;
+        }
+
+        Cookie cookie = new Cookie("resetToken", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // đổi thành true nếu dùng HTTPS
+        cookie.setPath("/");
+        cookie.setMaxAge(5 * 60); // 5 phút
+        response.addCookie(cookie);
+
+        response.sendRedirect("http://localhost:3000/auth/login?status=success");
+    }
+
+
     @PutMapping("/reset-password")
-    public ResponseData<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        authService.resetPassword(request.getToken(), request.getNewPassword());
+    public ResponseData<?> resetPassword( @CookieValue("resetToken") String token,
+                                     @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(token, request.getNewPassword(), request.getRepeatPassword());
         return ResponseData.builder()
             .status(HttpStatus.OK.value())
             .message("Đặt lại mật khẩu thành công")
