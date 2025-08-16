@@ -56,6 +56,17 @@ public class ApplyJob extends BaseEntity<Long> implements Serializable{
     @JsonIgnore
     Student student;
 
+    @Column(name="approvedBy")
+    private String approvedBy;
+
+    public String getApprovedBy(){
+        return approvedBy;
+    }
+
+    public void setApproved(String approvedBy){
+        this.approvedBy = approvedBy;
+    }
+
     public void setJobStatus(ApplyJobStatus applyJobStatus){
         this.applyJobStatus = applyJobStatus;
     }

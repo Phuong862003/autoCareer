@@ -21,8 +21,12 @@ import com.demo.autocareer.dto.response.ResponseData;
 import com.demo.autocareer.service.CompanyService;
 import com.demo.autocareer.service.JobDetailService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.demo.autocareer.dto.request.ApplyDTORequest;
+import com.demo.autocareer.dto.request.ApplyJobDTORequest;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
@@ -132,5 +136,32 @@ public class JobCompController {
                 .data(jobDetailService.getJobDetail(id))
                 .build();
     }
-    
+
+    @GetMapping("/applyJob-detail/{id}")
+    public ResponseData<?> getApplyJobDetail(@PathVariable Long id) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(companyService.getDetail(id))
+                .build();
+    }
+
+    @PutMapping("applyJob-approved/{id}")
+    public ResponseData<?> putMethodName(@PathVariable Long id, @RequestBody @Valid ApplyDTORequest request) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(companyService.handelApplyJob(id, request))
+                .build();
+    }
+
+    @DeleteMapping("/delete-applyJob/{id}")
+    public ResponseData<?> deleteApplyJob(@PathVariable Long id) {
+        companyService.deleteApplyJob(id);;
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("DELETE SUCCESS")
+                .data(null)
+                .build();
+    } 
 }
