@@ -17,9 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.demo.autocareer.dto.OrganizationDTO;
+import com.demo.autocareer.dto.request.ApplyDTORequest;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.InternshipApprovedDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
+import com.demo.autocareer.dto.response.ApplyRequestDTOReponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.CompanyStaticDTOResponse;
 import com.demo.autocareer.dto.response.InternshipApprovedDTOResponse;
@@ -29,6 +31,7 @@ import com.demo.autocareer.dto.response.StudentDTOResponse;
 import com.demo.autocareer.exception.ErrorCode;
 import com.demo.autocareer.filter.InternshipRequestFilter;
 import com.demo.autocareer.mapper.ApplyJobMapper;
+import com.demo.autocareer.mapper.ApplyJobRequestMapper;
 import com.demo.autocareer.mapper.InternshipApprovedMapper;
 import com.demo.autocareer.mapper.InternshipMapper;
 import com.demo.autocareer.mapper.JobMapper;
@@ -80,6 +83,8 @@ public class CompanyServiceImpl implements CompanyService{
     private InternshipMapper internshipMapper;
     @Autowired
     private JobDetailRepository jobRepository;
+    @Autowired
+    private ApplyJobRequestMapper applyJobRequestMapper;
 
     private final BaseSpecification<Job> baseSpecification = new BaseSpecification<>();
     private final BaseSpecification<Organization> baseSpecificationCompany = new BaseSpecification<>();
@@ -128,6 +133,10 @@ public class CompanyServiceImpl implements CompanyService{
 
             if (request.getKeyword() != null) {
             predicates.add(cb.like(cb.lower(jobJoin.get("title")), "%" + request.getKeyword().toLowerCase() + "%"));
+            }
+
+            if (request.getEnumValue() != null && !request.getEnumValue().isBlank()) {
+                predicates.add(cb.equal(root.get("applyJobStatus"), ApplyJobStatus.valueOf(request.getEnumValue())));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -245,5 +254,35 @@ public class CompanyServiceImpl implements CompanyService{
                 .hiredApplicants(hiredApplicants)
                 .monthlyJobStats(monthlyStats)
                 .build();
+    }
+
+    @Override
+    public ApplyJobDTOResponse getDetail(Long id){
+        Organization company = getCompanyFromToken();
+        ApplyJob applyJob = applyJobRepository.findById(id)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.APPLY_JOB_NOT_FOUND));
+        return applyJobMapper.mapEntityToResponse(applyJob);
+    }
+
+    @Override
+    public ApplyRequestDTOReponse handelApplyJob(Long id, ApplyDTORequest request){
+        Organization company = getCompanyFromToken();
+        ApplyJob applyJob = applyJobRepository.findById(id)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.APPLY_JOB_NOT_FOUND));
+        if (request.getApplyJobStatus() == null) {
+            throw ExceptionUtil.fromErrorCode(ErrorCode.STATUS_REQUIRED);
+        }
+        String approvedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+        applyJob.setJobStatus(request.getApplyJobStatus());
+        applyJob.setApproved(approvedBy);
+        applyJobRepository.save(applyJob);
+        return applyJobRequestMapper.mapEntityToResponse(applyJob);
+    }
+
+    @Override
+    public void deleteApplyJob(Long id){
+        ApplyJob applyJob = applyJobRepository.findById(id)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.APPLY_JOB_NOT_FOUND));
+        applyJobRepository.delete(applyJob);
     }
 }

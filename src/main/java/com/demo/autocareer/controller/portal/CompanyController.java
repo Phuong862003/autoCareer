@@ -22,7 +22,7 @@ import com.demo.autocareer.service.JobDetailService;
 
 
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api")
 public class CompanyController {
     private final CompanyService companyService;
     public CompanyController(CompanyService companyService) {

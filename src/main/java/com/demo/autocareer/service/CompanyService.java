@@ -3,9 +3,11 @@ package com.demo.autocareer.service;
 import org.springframework.data.domain.Pageable;
 
 import com.demo.autocareer.dto.OrganizationDTO;
+import com.demo.autocareer.dto.request.ApplyDTORequest;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.InternshipApprovedDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
+import com.demo.autocareer.dto.response.ApplyRequestDTOReponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.CompanyStaticDTOResponse;
 import com.demo.autocareer.dto.response.InternshipApprovedDTOResponse;
@@ -24,4 +26,7 @@ public interface CompanyService {
     InternshipApprovedDTOResponse handelRequest(Long id, InternshipApprovedDTORequest request);
     BasePageResponse<InternshipRequestDTOResponse> getInternshipRequest(InternshipRequestFilter request, Pageable pageable);
     CompanyStaticDTOResponse getStaticCompany();
+    ApplyJobDTOResponse getDetail(Long id);
+    ApplyRequestDTOReponse handelApplyJob(Long id, ApplyDTORequest request);
+    void deleteApplyJob(Long id);
 }

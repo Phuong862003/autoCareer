@@ -16,6 +16,7 @@ public enum ErrorCode {
     INTERN_REQUEST_APPROVED("INTERN_REQUEST_APPROVED", "Yêu cầu thực tập chưa được doanh nghiệp chấp nhận", 400),
     PASSWORDS_DO_NOT_MATCH("PASSWORDS_DO_NOT_MATCH", "Mật khẩu không khớp", 400),
     DISTRICT_NOT_IN_PROVINCE("DISTRICT_NOT_IN_PROVINCE", "Khong ton tai district ung voi provice", 400),
+    STATUS_REQUIRED("STATUS_REQUIRED", "Yêu cầu chọn trạng thái", 400),
 
     // 403 - Forbidden
     ACCESS_DENIED("ACCESS_DENIED", "Bạn không có quyền truy cập", 403),
@@ -40,6 +41,7 @@ public enum ErrorCode {
     PROVINCE_NOT_FOUND("PROVINCE_NOT_FOUND", "Khong tim thay province", 404),
     ORGANIZATION_NAME_REQUIRED("ORGANIZATION_NAME_REQUIRED", "Yeu cau nhap organizationName", 404),
     FIELD_NOT_FOUND("FIELD_NOT_FOUND", "Không tìm thấy field", 404),
+    APPLY_JOB_NOT_FOUND("APPLY_JOB_NOT_FOUND", "Không tìm thấy apply job", 404),
 
     // 500 - Internal Server Error
     EMAIL_SEND_FAIL("EMAIL_SEND_FAIL", "Không thể gửi email", 500);
