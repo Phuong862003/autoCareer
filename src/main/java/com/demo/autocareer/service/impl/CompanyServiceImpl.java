@@ -112,7 +112,7 @@ public class CompanyServiceImpl implements CompanyService{
             request.getFilters().remove("jobStatus"); // enumField đang dùng
         }
         Specification<Job> spec = baseSpecification
-                .build(request, "title", "jobStatus", "createdAt", null, null)
+                .build(request, "title", "jobStatus", "createdAt", null, null, null)
                 .and((root, query, cb) -> cb.equal(root.get("organization"), company));
         Sort sort = baseSpecification.buildSort(request, "title");
         Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -152,7 +152,7 @@ public class CompanyServiceImpl implements CompanyService{
     @Override
     public BasePageResponse<OrganizationDTO> getCompany(BaseFilterRequest request, Pageable pageable){
         Specification<Organization> spec = baseSpecificationCompany
-                    .build(request, "organizationName", null, null, null, null)
+                    .build(request, "organizationName", null, null, null, null, null)
                     .and((root, query, cb) -> cb.equal(root.get("organizationType"), OrganizationType.COMPANY));
         Sort sort = baseSpecificationCompany.buildSort(request, "organizationName");
         Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -196,12 +196,32 @@ public class CompanyServiceImpl implements CompanyService{
         InternshipRequest internRequest = internshipRequestRepository.findById(id)
             .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.COMPANY_NOT_FOUND));
         
-        if (internRequest.getStatusRequest() != StatusRequest.PENDING){
-            throw ExceptionUtil.fromErrorCode(ErrorCode.INTERN_REQUEST_PENDING);
+        StatusRequest currentStatus = internRequest.getStatusRequest();
+        StatusRequest newStatus = request.getStatusRequest();
+
+        switch (currentStatus) {
+            case PENDING:
+                if (newStatus != StatusRequest.APPROVED && newStatus != StatusRequest.REJECTED) {
+                    throw ExceptionUtil.fromErrorCode(ErrorCode.INVALID_STATUS_TRANSITION);
+                }
+                break;
+
+            case APPROVED:
+                if (newStatus != StatusRequest.COMPLETED) {
+                    throw ExceptionUtil.fromErrorCode(ErrorCode.INVALID_STATUS_TRANSITION);
+                }
+                break;
+
+            case REJECTED:
+            case COMPLETED:
+                throw ExceptionUtil.fromErrorCode(ErrorCode.INVALID_STATUS_TRANSITION);
+
+            default:
+                throw ExceptionUtil.fromErrorCode(ErrorCode.INVALID_STATUS_TRANSITION);
         }
 
         String approvedBy = SecurityContextHolder.getContext().getAuthentication().getName();
-        internRequest.setStatusRequest(request.getStatusRequest());
+        internRequest.setStatusRequest(newStatus);
         internRequest.setNote(request.getNote());
         internRequest.setApprovedBy(approvedBy);
         internshipRequestRepository.save(internRequest);
@@ -212,7 +232,7 @@ public class CompanyServiceImpl implements CompanyService{
     public BasePageResponse<InternshipRequestDTOResponse> getInternshipRequest(InternshipRequestFilter request, Pageable pageable){
         Organization company = getCompanyFromToken();
         Specification<InternshipRequest> spec = baseSpecificationInternship
-            .build(request, "title", "statusRequest", null, null, null)
+            .build(request, "title", "statusRequest", null, null, null, null)
             .and((root, query, cb) -> cb.equal(root.get("company"), company))
             .and((root, query, cb) -> {
                 if (request.getUniversityId() != null) {

@@ -123,7 +123,7 @@ public class JobCompController {
     public ResponseData<?> getCompanyStats() {
         return ResponseData.builder()
                 .status(HttpStatus.OK.value())
-                .message("DELETE SUCCESS")
+                .message("SUCCESS")
                 .data(companyService.getStaticCompany())
                 .build();
     }

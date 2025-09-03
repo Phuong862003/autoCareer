@@ -8,8 +8,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
 public class ProvinceDTO implements Serializable{
     private Long id;
-    private String province_name;
+    private String provinceName;
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setProvinceName(String provinceName) {
+        this.provinceName = provinceName;
+    }
 }

@@ -79,6 +79,10 @@ public class InternshipAssignment extends BaseEntity<Long> implements Serializab
     @Column(name = "status", nullable = false)
     private StatusAssign status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_file_id")
+    private InternshipRequestFile internRequestFile;
+
     public InternshipRequest getInternshipRequest() {
         return internshipRequest;
     }
@@ -181,6 +185,14 @@ public class InternshipAssignment extends BaseEntity<Long> implements Serializab
 
     public void setSkill(String skill) {
         this.skill = skill;
+    }
+
+    public InternshipRequestFile getInternRequestFile() {
+        return internRequestFile;
+    }
+
+    public void setInternRequestFile(InternshipRequestFile internRequestFile) {
+        this.internRequestFile = internRequestFile;
     }
 
     

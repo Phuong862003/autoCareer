@@ -35,14 +35,10 @@ public class StudentSpecification extends BaseSpecification<Student>{
                 ));
             }
 
-            // if(request.getStatusIntern() != null){
-            //     predicates.add(cb.equal(internJoin.get("statusIntern"), request.getStatusIntern()));
-            // }
-
             if (request.getStatusIntern() != null) {
                 switch (request.getStatusIntern()) {
                     case NOT_YET:
-                        predicates.add(cb.isNull(internJoin.get("id")));
+                        predicates.add(cb.isNull(root.get("internDeclareRequest")));
                         break;
                     case WAITING:
                         predicates.add(cb.equal(internJoin.get("statusIntern"), StatusIntern.WAITING));
@@ -55,13 +51,13 @@ public class StudentSpecification extends BaseSpecification<Student>{
                         break;
                     case NOT_YET_OR_REJECTED:
                         predicates.add(cb.or(
-                            cb.isNull(internJoin.get("id")),
+                            cb.isNull(root.get("internDeclareRequest")),
                             cb.equal(internJoin.get("statusIntern"), StatusIntern.REJECTED)
                         ));
                         break;
-
                 }
             }
+
 
             if (StringUtils.hasText(request.getSemester())) {
                 predicates.add(cb.equal(internJoin.get("semester"), request.getSemester()));
@@ -72,7 +68,7 @@ public class StudentSpecification extends BaseSpecification<Student>{
             }
 
 
-            Predicate basePredicate = super.build(request, null, null, null, "district", null)
+            Predicate basePredicate = super.build(request, null, null, null, "district", null, null)
                                 .toPredicate(root, query, cb);
             if (basePredicate != null) {
                 predicates.add(basePredicate);

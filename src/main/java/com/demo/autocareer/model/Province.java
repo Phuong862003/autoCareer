@@ -28,7 +28,9 @@ import lombok.experimental.FieldDefaults;
 @Table(name = "province")
 public class Province extends BaseEntity<Long> implements Serializable{
     @Column(name = "province_name")
-    String province_name;
+    String provinceName;
 
-
+    public String getProvinceName(){
+        return provinceName;
+    }
 }

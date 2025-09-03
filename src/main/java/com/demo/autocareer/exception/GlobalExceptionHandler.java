@@ -23,7 +23,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUnexpectedException(Exception ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("code", "INTERNAL_SERVER_ERROR");
-        response.put("message", "Đã xảy ra lỗi không xác định");
+        response.put("message", ex.getMessage()); // <-- dùng message thật từ exception
         return ResponseEntity.status(500).body(response);
     }
+
 }

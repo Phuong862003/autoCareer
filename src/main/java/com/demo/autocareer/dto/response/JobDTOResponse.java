@@ -43,5 +43,12 @@ public class JobDTOResponse implements Serializable{
     private String working_address;
     OrganizationDTO organization;
     FieldDTO field;
-    private List<ProvinceDTO> provinces;
+    private List<ProvinceDTO> provinces; 
+    public List<ProvinceDTO> getProvinces(){
+        return provinces;
+    }
+
+    public FieldDTO getField(){
+        return field;
+    }
 }

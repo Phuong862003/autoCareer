@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.demo.autocareer.dto.response.ResponseData;
 import com.demo.autocareer.service.CompanyService;
 import com.demo.autocareer.service.InternshipAssignmentService;
+import com.demo.autocareer.service.InternshipRequestService;
 import com.demo.autocareer.service.UniversityService;
 
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
 import com.demo.autocareer.dto.request.InternshipApprovedDTORequest;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.demo.autocareer.dto.request.InternshipRequestDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
+import com.demo.autocareer.dto.response.InternRequestFileDTOResponse;
 import com.demo.autocareer.dto.response.InternshipAssignDTOResponse;
 import com.demo.autocareer.dto.response.InternshipRequestDTOResponse;
 import com.demo.autocareer.filter.InternshipRequestFilter;
@@ -38,10 +41,12 @@ import com.demo.autocareer.filter.InternshipRequestFilter;
 public class InternShipRequestController {
     private final CompanyService companyService;
     private final InternshipAssignmentService internshipAssignmentService;
+    private final InternshipRequestService internshipRequestService;
 
-    public InternShipRequestController(CompanyService companyService, InternshipAssignmentService internshipAssignmentService) {
+    public InternShipRequestController(CompanyService companyService, InternshipAssignmentService internshipAssignmentService, InternshipRequestService internshipRequestService) {
         this.companyService = companyService;
         this.internshipAssignmentService = internshipAssignmentService;
+        this.internshipRequestService = internshipRequestService;
     }
 
     @PutMapping("/intern-request/approved/{id}")
@@ -75,4 +80,42 @@ public class InternShipRequestController {
                 .build();
     }
     
+    @GetMapping("/internRequest-stats")
+    public ResponseData<?> getInternRequestStats() {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(internshipRequestService.getInternRequestStatic())
+                .build();
+    }
+    
+    @GetMapping("/internRequest-detail/{id}")
+    public ResponseData<?> getInternRequestDetail(@PathVariable Long id) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(internshipRequestService.getDetail(id))
+                .build();
+    }
+
+    @DeleteMapping("/deleted-internRequest/{id}")
+    public ResponseData<?> deletedInternRequest(@PathVariable Long id) {
+        internshipRequestService.deletedInternRequest(id);
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("DELETE SUCCESS")
+                .data(null)
+                .build();  
+    } 
+
+    @GetMapping("/list-internRequest")
+    public ResponseData<BasePageResponse<InternRequestFileDTOResponse>> getListInternRequest(@ModelAttribute BaseFilterRequest baseFilterRequest,@ModelAttribute BasePageRequest basePageRequest) {
+        Pageable pageable = basePageRequest.toPageable();
+        BasePageResponse<InternRequestFileDTOResponse> result = internshipAssignmentService.getListInternRequestFile(baseFilterRequest, pageable);
+        return ResponseData.<BasePageResponse<InternRequestFileDTOResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("GET LIST INTERNSHIP SUCCESS")
+                .data(result)
+                .build();
+    }
 }

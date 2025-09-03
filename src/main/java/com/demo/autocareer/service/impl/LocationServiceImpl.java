@@ -13,6 +13,9 @@ import com.demo.autocareer.repository.ProvinceRepository;
 import com.demo.autocareer.service.LocationService;
 import com.demo.autocareer.dto.DistrictDTO;
 import com.demo.autocareer.dto.ProvinceDTO;
+import com.demo.autocareer.dto.SemesterDTO;
+import com.demo.autocareer.mapper.SemesterMapper;
+import com.demo.autocareer.repository.SemesterRepository;
 
 @Service
 public class LocationServiceImpl implements LocationService{
@@ -28,6 +31,12 @@ public class LocationServiceImpl implements LocationService{
     @Autowired
     private ProvinceMapper proviceMapper;
 
+    @Autowired
+    private SemesterRepository semesterRepository;
+
+    @Autowired
+    private SemesterMapper semesterMapper;
+
     @Override
     public List<ProvinceDTO> findAll(){
         return provinceRepository.findAll()
@@ -41,6 +50,14 @@ public class LocationServiceImpl implements LocationService{
         return districtRepository.findByProvinceId(id)
                 .stream()
                 .map(districtMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SemesterDTO> findAllSemester(){
+        return semesterRepository.findAll()
+                .stream()
+                .map(semesterMapper::toDto)
                 .collect(Collectors.toList());
     }
 }

@@ -107,18 +107,42 @@ public class JobDetailServiceImpl implements JobDetailService{
     }
 
     @Override
-    public BasePageResponse<JobDTOResponse> getAllJobs(BaseFilterRequest request, Pageable pageable){
+    public BasePageResponse<JobDTOResponse> getAllJobs(BaseFilterRequest request, String salaryFilter, Pageable pageable) {
         Specification<Job> spec = baseSpecification
-                .build(request, "title", "jobStatus", "createdAt", null, "jobProvinces.province");
-        Sort sort = baseSpecification.buildSort(request, "title");
+                .build(request, "title", "workingType", "createdAt", null, "jobProvinces.province", "field");
+
+        if (salaryFilter != null && !salaryFilter.isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                switch (salaryFilter) {
+                    case "under10":
+                        return cb.lessThan(root.get("salary_end"), 10);
+                    case "10to20":
+                        return cb.and(
+                            cb.greaterThanOrEqualTo(root.get("salary_start"), 10),
+                            cb.lessThanOrEqualTo(root.get("salary_end"), 20)
+                        );
+                    case "20to30":
+                        return cb.and(
+                            cb.greaterThanOrEqualTo(root.get("salary_start"), 20),
+                            cb.lessThanOrEqualTo(root.get("salary_end"), 30)
+                        );
+                    case "over30":
+                        return cb.greaterThan(root.get("salary_end"), 30);
+                    default:
+                        return null;
+                }
+            });
+        }
+
+        Sort sort = baseSpecification.buildSort(request, "createdAt");
         Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         Page<Job> jobs = jobDetailRepository.findAll(spec, sortPageable);
-
         Page<JobDTOResponse> jobDTOPage = jobs.map(jobMapper::mapEntityToResponse);
 
         return PageUtils.fromPage(jobDTOPage);
     }
+
 
     @Override
     public JobDTOResponse getJobDetail(Long id){
@@ -129,6 +153,21 @@ public class JobDetailServiceImpl implements JobDetailService{
             throw ExceptionUtil.fromErrorCode(ErrorCode.ACCESS_DENIED);
         }
 
+        List<SubField> jobSubfields = jobDetailRepository.findSubFieldsByJobId(id);
+
+        Field field = job.getField();
+        if (field != null) {
+            // Chỉ set subfields nếu field tồn tại
+            field.setSubFields(jobSubfields);
+            job.setField(field);
+        }
+        return jobMapper.mapEntityToResponse(job);
+    }
+
+    @Override
+    public JobDTOResponse getJobDetailPortal(Long id){
+        Job job = jobDetailRepository.findById(id)
+                .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.JOB_NOT_FOUND));
         List<SubField> jobSubfields = jobDetailRepository.findSubFieldsByJobId(id);
 
         Field field = job.getField();

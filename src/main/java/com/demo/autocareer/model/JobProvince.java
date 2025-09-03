@@ -38,4 +38,8 @@ public class JobProvince extends BaseEntity<Long> implements Serializable{
     @JoinColumn(name = "province_id", nullable = false)
     Province province;
 
+    public Province getProvince() {
+        return province;
+    }
+
 }

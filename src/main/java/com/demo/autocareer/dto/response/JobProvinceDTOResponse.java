@@ -1,6 +1,7 @@
 package com.demo.autocareer.dto.response;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.demo.autocareer.dto.ProvinceDTO;
 
@@ -19,5 +20,5 @@ import lombok.Setter;
 @Data
 public class JobProvinceDTOResponse implements Serializable{
     private JobDTOResponse job;
-    private ProvinceDTO provinces;
+    private List<ProvinceDTO> provinces;
 }

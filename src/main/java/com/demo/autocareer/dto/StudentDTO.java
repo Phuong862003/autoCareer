@@ -16,8 +16,8 @@ public class StudentDTO implements Serializable{
     private Date dob;
     private Integer graduatedYear;
     private Gender gender;
-    private Long districtId;
-    private Long organizationFacultyId;
+    private String districtName;
+    private String facultyName;
     private Long subFieldId;
 
     public StudentDTO(){}
@@ -48,14 +48,6 @@ public class StudentDTO implements Serializable{
 
     public Gender getGender(){
         return gender;
-    }
-
-    public Long getDistrictId(){
-        return districtId;
-    }
-
-    public Long getOrganizationFacultyId(){
-        return organizationFacultyId;
     }
 
     public Long getSubFieldId(){
@@ -90,15 +82,26 @@ public class StudentDTO implements Serializable{
         this.gender = gender;
     }
 
-    public void setDistrictId(Long districtId){
-        this.districtId = districtId;
-    }
-
-    public void setOrganizationFacultyId(Long organizationFacultyId){
-        this.organizationFacultyId = organizationFacultyId;
-    }
 
     public void setSubFieldId(Long subFieldId){
         this.subFieldId = subFieldId;
+    }
+
+    
+
+    public void setDistrictName(String districtName) {
+        this.districtName = districtName;
+    }
+
+    public String getFacultyName() {
+        return facultyName;
+    }
+
+    public void setFacultyName(String facultyName) {
+        this.facultyName = facultyName;
+    }
+
+    public String getDistrictName() {
+        return districtName;
     }
 }

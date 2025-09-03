@@ -13,4 +13,6 @@ import com.demo.autocareer.model.Role;
 public interface DistrictRepository extends JpaRepository<District, Long>{
     Optional<District> findById(Long id);
     List<District> findByProvinceId(Long id);
+    Optional<District> findByDistrictName(String district_name);
+
 }

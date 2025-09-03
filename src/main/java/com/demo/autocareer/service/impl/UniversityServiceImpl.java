@@ -1,12 +1,17 @@
 package com.demo.autocareer.service.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.Normalizer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.text.ParseException;
 
 import org.apache.coyote.BadRequestException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -36,22 +41,30 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.demo.autocareer.dto.OrganizationDTO;
+import com.demo.autocareer.dto.OrganizationFacultyDTO;
 import com.demo.autocareer.dto.StudentDTO;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.InternRequestApprovedDTORequest;
+import com.demo.autocareer.dto.request.StudentDTORequest;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.InternDeclareRequestDTOResponse;
 import com.demo.autocareer.dto.response.InternRequestApprovedDTOReponse;
 import com.demo.autocareer.dto.response.StudentDTOResponse;
+import com.demo.autocareer.dto.response.StudentStaticDTOResponse;
 import com.demo.autocareer.excel.WriteStudentExcel;
 import com.demo.autocareer.exception.ErrorCode;
+import com.demo.autocareer.filter.CompanyFilter;
 import com.demo.autocareer.filter.StudentInternFilter;
 import com.demo.autocareer.mapper.InternDeclareApprovedMapper;
 import com.demo.autocareer.mapper.InternDeclareRequestMapper;
+import com.demo.autocareer.mapper.OrganizationFacultyMapper;
 import com.demo.autocareer.mapper.OrganizationMapper;
 import com.demo.autocareer.mapper.StudentMapper;
+import com.demo.autocareer.mapper.StudentProMapper;
 import com.demo.autocareer.model.District;
+import com.demo.autocareer.model.Faculty;
 import com.demo.autocareer.model.InternDeclareRequest;
+import com.demo.autocareer.model.InternshipSemester;
 import com.demo.autocareer.model.Organization;
 import com.demo.autocareer.model.OrganizationFaculty;
 import com.demo.autocareer.model.Role;
@@ -62,8 +75,11 @@ import com.demo.autocareer.model.enums.AccountStatus;
 import com.demo.autocareer.model.enums.Gender;
 import com.demo.autocareer.model.enums.OrganizationType;
 import com.demo.autocareer.model.enums.StatusIntern;
+import com.demo.autocareer.model.enums.StatusInternSemester;
 import com.demo.autocareer.repository.DistrictRepository;
+import com.demo.autocareer.repository.FacultyRepository;
 import com.demo.autocareer.repository.InternDeclareRequestRepository;
+import com.demo.autocareer.repository.InternshipSemesterRepository;
 import com.demo.autocareer.repository.OrganizationFacultyRepository;
 import com.demo.autocareer.repository.OrganizationRepository;
 import com.demo.autocareer.repository.RoleRepository;
@@ -72,6 +88,7 @@ import com.demo.autocareer.repository.SubFieldRepository;
 import com.demo.autocareer.repository.UserRepository;
 import com.demo.autocareer.service.UniversityService;
 import com.demo.autocareer.specification.BaseSpecification;
+import com.demo.autocareer.specification.CompanySpecification;
 import com.demo.autocareer.specification.StudentSpecification;
 import com.demo.autocareer.utils.ExceptionUtil;
 import com.demo.autocareer.utils.JwtUtil;
@@ -116,12 +133,20 @@ public class UniversityServiceImpl implements UniversityService{
     private InternDeclareApprovedMapper internDeclareApprovedMapper;
     @Autowired
     private WriteStudentExcel writeStudentExcel;
+    @Autowired
+    private InternshipSemesterRepository internshipSemesterRepository;
+    @Autowired
+    private OrganizationFacultyMapper organizationFacultyMapper;
+    @Autowired
+    private FacultyRepository facultyRepository;
+    @Autowired
+    private StudentProMapper studentProMapper;
 
 
     private final BaseSpecification<Student> baseSpecification = new BaseSpecification<>();
     private final StudentSpecification studentSpecification = new StudentSpecification();
     private final BaseSpecification<Organization> baseSpecificationUni = new BaseSpecification<>();
-
+    private final CompanySpecification companySpecification = new CompanySpecification();
 
     @Override
     public Organization getUniFromToken() {
@@ -132,6 +157,7 @@ public class UniversityServiceImpl implements UniversityService{
 
     @Override
     public void bulkCreateStudents(MultipartFile file) {
+        Organization uni = getUniFromToken();
         List<StudentDTO> students = parseFile(file);
         if (students.isEmpty()) {
             log.warn("⚠️ No valid student data found in the uploaded file.");
@@ -145,54 +171,57 @@ public class UniversityServiceImpl implements UniversityService{
         int count = 0;
         for (StudentDTO dto : students) {
             count++;
+            if (userRepository.existsByEmail(dto.getEmail())) {
+                log.warn("⚠️ Email {} đã tồn tại. Bỏ qua sinh viên này.", dto.getEmail());
+                continue;
+            }
+
+            User user = new User();
+            user.setEmail(dto.getEmail());
+            user.setUsername(dto.getName());
+            user.setPhoneNumber(dto.getPhoneNumber());
+            String rawPassword = generateRandomPassword();
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            user.setAccountStatus(AccountStatus.PENDING);
+            user.setRole(studentRole);
+            user.setEnabled(false);
+            userRepository.save(user);
+
+            Student student = new Student();
+            student.setUser(user);
+            student.setName(dto.getName());
+            student.setStudentCode(dto.getStudentCode());
+            student.setDob(dto.getDob());
+            student.setPhoneNumber(dto.getPhoneNumber());
+            student.setEmail(dto.getEmail());
+            student.setGraduatedYear(dto.getGraduatedYear());
+            student.setGender(dto.getGender());
+
+            if (dto.getDistrictName() != null && !dto.getDistrictName().isEmpty()) {
+                String normalizedDistrict = normalizeVietnamese(dto.getDistrictName());
+                District district = districtRepository.findAll().stream()
+                    .filter(d -> normalizeVietnamese(d.getDistrictName()).equals(normalizedDistrict))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("District not found: " + dto.getDistrictName()));
+                student.setDistrict(district);
+            }
+
+            if (dto.getFacultyName() != null && !dto.getFacultyName().isEmpty()) {
+                String normalizedFaculty = normalizeVietnamese(dto.getFacultyName());
+                Faculty faculty = facultyRepository.findAll().stream()
+                    .filter(f -> normalizeVietnamese(f.getFacultyName()).equals(normalizedFaculty))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Faculty not found: " + dto.getFacultyName()));
+                OrganizationFaculty orgFaculty = organizationFacultyRepository.findByFacultyAndOrganization(faculty, uni)
+                        .orElseThrow(() -> new RuntimeException("OrganizationFaculty not found for faculty: " + faculty.getFacultyName()));
+                student.setOrganizationFaculty(orgFaculty);
+            }
+
+            studentRepository.save(student);
             try {
-                if (userRepository.existsByEmail(dto.getEmail())) {
-                    log.warn("⚠️ Email {} đã tồn tại. Bỏ qua sinh viên này.", dto.getEmail());
-                    continue;
-                }
-
-                User user = new User();
-                user.setEmail(dto.getEmail());
-                user.setUsername(dto.getName());
-                user.setPhoneNumber(dto.getPhoneNumber());
-                String rawPassword = generateRandomPassword();
-                user.setPassword(passwordEncoder.encode(rawPassword));
-                user.setAccountStatus(AccountStatus.PENDING);
-                user.setRole(studentRole);
-                user.setEnabled(false);
-                userRepository.save(user);
-
-                Student student = new Student();
-                student.setUser(user);
-                student.setName(dto.getName());
-                student.setStudentCode(dto.getStudentCode());
-                student.setDob(dto.getDob());
-                student.setPhoneNumber(dto.getPhoneNumber());
-                student.setEmail(dto.getEmail());
-                student.setGraduatedYear(dto.getGraduatedYear());
-                student.setGender(dto.getGender());
-
-                if (dto.getDistrictId() != null) {
-                    District district = districtRepository.findById(dto.getDistrictId())
-                            .orElseThrow(() -> new RuntimeException("District not found with ID: " + dto.getDistrictId()));
-                    student.setDistrict(district);
-                }
-
-                if (dto.getOrganizationFacultyId() != null) {
-                    OrganizationFaculty orgFaculty = organizationFacultyRepository.findById(dto.getOrganizationFacultyId())
-                            .orElseThrow(() -> new RuntimeException("OrganizationFaculty not found with ID: " + dto.getOrganizationFacultyId()));
-                    student.setOrganizationFaculty(orgFaculty);
-                }
-
-                studentRepository.save(student);
-                try {
-                    sendAccountCreatedEmail(dto.getEmail(), dto.getName(), rawPassword);
-                } catch (Exception e) {
-                    log.error("❌ Gửi email thất bại cho {}: {}", dto.getEmail(), e.getMessage(), e);
-                }
-
+                sendAccountCreatedEmail(dto.getEmail(), dto.getName(), rawPassword);
             } catch (Exception e) {
-                log.error("❌❌❌ Lỗi khi xử lý sinh viên {}: {}", dto.getEmail(), e.getMessage(), e);
+                log.error("❌ Gửi email thất bại cho {}: {}", dto.getEmail(), e.getMessage(), e);
             }
 
         }
@@ -265,11 +294,12 @@ public class UniversityServiceImpl implements UniversityService{
                     log.warn("⚠️ Giá trị gender không hợp lệ tại dòng {}: '{}'", i + 1, genderStr);
                     dto.setGender(null);
                 }
-                String districtIdStr = getSafeStringCell(row, 7, formatter, evaluator);
-                    dto.setDistrictId(districtIdStr.isEmpty() ? null : Long.parseLong(districtIdStr));
+                String districtName = getSafeStringCell(row, 7, formatter, evaluator);
+                dto.setDistrictName(normalizeVietnamese(districtName));
 
-                String orgFacultyIdStr = getSafeStringCell(row, 8, formatter, evaluator);
-                dto.setOrganizationFacultyId(orgFacultyIdStr.isEmpty() ? null : Long.parseLong(orgFacultyIdStr));
+                String facultyName = getSafeStringCell(row, 8, formatter, evaluator);
+                dto.setFacultyName(normalizeVietnamese(facultyName));
+
 
                 students.add(dto);
 
@@ -283,6 +313,15 @@ public class UniversityServiceImpl implements UniversityService{
 
         return students;
     }
+
+    private String normalizeVietnamese(String input) {
+        if (input == null) return null;
+        String normalized = Normalizer.normalize(input.trim(), Normalizer.Form.NFC);
+        // Loại bỏ dấu
+        normalized = normalized.replaceAll("\\p{M}", "");
+        return normalized.toLowerCase(); // so sánh không phân biệt hoa thường
+    }
+
 
     private String getSafeStringCell(Row row, int colIndex, DataFormatter formatter, FormulaEvaluator evaluator) {
         Cell cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
@@ -301,17 +340,29 @@ public class UniversityServiceImpl implements UniversityService{
 
         try {
             if (cell.getCellType() == CellType.NUMERIC) {
-                boolean isDate = DateUtil.isCellDateFormatted(cell);
-                if (isDate) {
+                if (DateUtil.isCellDateFormatted(cell)) {
                     return cell.getDateCellValue();
                 } else {
-                    Date fallback = DateUtil.getJavaDate(cell.getNumericCellValue());
-                    return fallback;
+                    return DateUtil.getJavaDate(cell.getNumericCellValue());
                 }
             }
 
             if (cell.getCellType() == CellType.STRING) {
-                log.info("🔤 Cell is STRING: '{}'", cell.getStringCellValue());
+                String value = cell.getStringCellValue().trim();
+                if (!value.isEmpty()) {
+                    try {
+                        // Hỗ trợ nhiều định dạng phổ biến
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                        return sdf.parse(value);
+                    } catch (ParseException e1) {
+                        try {
+                            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+                            return sdf2.parse(value);
+                        } catch (ParseException e2) {
+                            log.warn("⚠️ Không parse được DOB từ text: '{}'", value);
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             log.error("❌ Exception trong getSafeDate: {}", e.getMessage(), e);
@@ -319,6 +370,7 @@ public class UniversityServiceImpl implements UniversityService{
 
         return null;
     }
+
 
     private String generateRandomPassword() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 10);
@@ -361,6 +413,14 @@ public class UniversityServiceImpl implements UniversityService{
         return internDelcareRequestMapper.mapEntityToResponse(request);
     }
 
+    @Override
+    public StudentDTOResponse getDetailStudent(Long studentId){
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.STUDENT_NOT_FOUND));
+        
+        return studentMapper.mapEntityToResponse(student);
+    }
+
     // @Override
     // public BasePageResponse<StudentDTOResponse> getStudent(StudentInternFilter request, Pageable pageable){
     //     Organization uni = getUniFromToken();
@@ -395,13 +455,20 @@ public class UniversityServiceImpl implements UniversityService{
         internRequest.setNote(request.getNote());
         internRequest.setApprovedBy(approvedBy);
 
+        if(request.getStatusIntern().equals(StatusIntern.APPROVED)){
+            InternshipSemester interns = internshipSemesterRepository.findByStudent(internRequest.getStudent())
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.INTERNSHIP_SEMESTER_NOT_FOUND));
+            interns.setStatus(StatusInternSemester.DECLARED);
+            internshipSemesterRepository.save(interns);
+        }
+
         return internDeclareApprovedMapper.mapEntityToResponse(internRequest);
     }
 
     @Override
     public BasePageResponse<OrganizationDTO> getAllUni(BaseFilterRequest request, Pageable pageable){
         Specification<Organization> spec = baseSpecificationUni
-                    .build(request, "organizationName", null, null, null, null)
+                    .build(request, "organizationName", null, null, null, null, null)
                     .and((root, query, cb) -> cb.equal(root.get("organizationType"), OrganizationType.UNIVERSITY));
         Sort sort = baseSpecificationUni.buildSort(request, "organizationName");
         Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -412,7 +479,7 @@ public class UniversityServiceImpl implements UniversityService{
     }
 
     @Override
-    public String exportStudentListByFilter(StudentInternFilter request) {
+    public ByteArrayInputStream exportStudentListByFilter(StudentInternFilter request) {
         Organization uni = getUniFromToken();
         Specification<Student> spec = studentSpecification.buildSpec(request, uni);
 
@@ -424,5 +491,104 @@ public class UniversityServiceImpl implements UniversityService{
         return writeStudentExcel.writeStudentExcel(dtoList); // Không cần try-catch IOException
     }
 
+    @Override
+    public List<OrganizationFacultyDTO> GetAllOrganizationFaculty(){
+        Organization uni = getUniFromToken();
+        return organizationFacultyRepository.findByOrganization(uni)
+                .stream()
+                .map(organizationFacultyMapper::toDto)
+                .collect(Collectors.toList());
+    }
 
+    @Override
+    public StudentStaticDTOResponse getStudentStatic() {
+        Organization uni = getUniFromToken();
+
+        List<Object[]> result = studentRepository.getStudentStatics(uni.getId());
+
+        Long totalStudent = 0L;
+        Long totalApproved = 0L;
+        Long totalWaiting = 0L;
+        Long totalNotYet = 0L;
+
+        if (!result.isEmpty()) {
+            Object[] row = result.get(0);
+            totalStudent = ((Number) row[0]).longValue();
+            totalApproved = ((Number) row[1]).longValue();
+            totalWaiting = ((Number) row[2]).longValue();
+            totalNotYet = ((Number) row[3]).longValue();
+
+            System.out.println("Total: " + totalStudent + ", Approved: " + totalApproved);
+        }
+
+        List<Object[]> monthly = studentRepository.countStudentByMonth(uni.getId());
+        Map<Integer, Long> monthMap = monthly.stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).intValue(),
+                        row -> ((Number) row[1]).longValue()
+                ));
+
+        return new StudentStaticDTOResponse(
+                totalStudent,
+                totalApproved,
+                totalWaiting,
+                totalNotYet,
+                monthMap
+        );
+    }
+
+    @Override
+    public StudentDTOResponse updateStudent(Long id, StudentDTORequest studentDTO){
+        Organization uni = getUniFromToken();
+        Student student = studentRepository.findByIdAndOrganization(id, uni)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.STUDENT_NOT_FOUND));
+
+        studentProMapper.partialUpdate(student, studentDTO);
+
+        if(studentDTO.getDistrictId() != null){
+            District district = districtRepository.findById(studentDTO.getDistrictId())
+                    .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.DISTRICT_NOT_FOUND));
+            student.setDistrict(district);
+        }
+
+        if (studentDTO.getOrganizationFacultyId() != null) {
+            OrganizationFaculty of = organizationFacultyRepository.findById(studentDTO.getOrganizationFacultyId())
+                .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.ORG_FACULTY_NOT_FOUND));
+            student.setOrganizationFaculty(of);
+        }
+
+        studentRepository.save(student);
+        return studentProMapper.mapEntityToResponse(student);
+    }
+
+    @Override
+    public void deletedStudent(Long id){
+        Student student = studentRepository.findById(id)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.STUDENT_NOT_FOUND));
+        
+        studentRepository.delete(student);
+    }
+
+    @Override
+    public BasePageResponse<OrganizationDTO> getCompany(CompanyFilter request, Pageable pageable){
+        Organization uni = getUniFromToken();
+        Specification<Organization> spec = companySpecification.buildSpec(request, uni);
+
+        Sort sort = baseSpecification.buildSort(request, "organizationName");
+        Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<Organization> page = organizationRepository.findAll(spec, sortPageable);
+        Page<OrganizationDTO> result = page.map(org -> {
+            OrganizationDTO dto = organizationMapper.mapEntityToResponse(org);
+
+            // lấy internshipRequest tương ứng với university đang đăng nhập
+            org.getInternshipRequestsAsCompany().stream()
+                .filter(req -> req.getUniversity().getId().equals(uni.getId()))
+                .findFirst()
+                .ifPresent(req -> dto.setStatusRequest(req.getStatusRequest()));
+
+            return dto;
+        });
+        return PageUtils.fromPage(result);
+    }
 }

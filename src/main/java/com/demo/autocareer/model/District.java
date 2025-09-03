@@ -33,7 +33,7 @@ import lombok.experimental.FieldDefaults;
 @Table(name = "district")
 public class District extends BaseEntity<Long> implements Serializable{
     @Column(name = "district_name")
-    String district_name;
+    String districtName;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "province_id", nullable = false)
@@ -42,5 +42,9 @@ public class District extends BaseEntity<Long> implements Serializable{
 
     public Province getProvince() {
         return province;
+    }
+
+    public String getDistrictName(){
+        return districtName;
     }
 }

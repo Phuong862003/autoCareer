@@ -29,7 +29,7 @@ public class FileController {
         this.fileStorageService = fileStorageService;
     }
 
-    @GetMapping("/download/cv")
+    @GetMapping("/download")
     public ResponseEntity<Resource> download(@RequestParam String path) {
         Resource resource = fileDownloadService.downloadStudentCV(path);
 

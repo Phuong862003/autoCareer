@@ -41,5 +41,12 @@ public class LocationController {
                 .build();
     }
     
-    
+    @GetMapping("/semester")
+    public ResponseData<?> getSemester() {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("GET  SUCCESS")
+                .data(locationService.findAllSemester())
+                .build();
+    }
 }

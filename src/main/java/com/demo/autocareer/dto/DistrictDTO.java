@@ -13,6 +13,6 @@ import lombok.Setter;
 @Builder
 public class DistrictDTO implements Serializable{
     private Long id;
-    String district_name;
+    String districtName;
     ProvinceDTO province;
 }

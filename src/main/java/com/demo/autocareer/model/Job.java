@@ -87,7 +87,7 @@ public class Job extends BaseEntity<Long> implements Serializable{
     Organization organization;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "field_id", nullable = false)
+    @JoinColumn(name = "field_id")
     @JsonIgnore
     Field field;
 
@@ -221,5 +221,9 @@ public class Job extends BaseEntity<Long> implements Serializable{
 
     public List<SubField> getSubFields(){
         return subFields;
+    }
+
+    public List<JobProvince> getJobProvinces(){
+        return jobProvinces;
     }
 }

@@ -34,8 +34,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "interndeclarerequest")
 public class InternDeclareRequest extends BaseEntity<Long> implements Serializable{
-    @Column(name = "semester")
-    private String semester;
+    @ManyToOne
+    @JoinColumn(name = "semester_id", referencedColumnName = "id")
+    private Semester semester;
 
     @Column(name = "company_name")
     private String companyName;
@@ -50,6 +51,9 @@ public class InternDeclareRequest extends BaseEntity<Long> implements Serializab
 
     @Column(name = "contact_phone")
     private String contactPhone;
+
+    @Column(name = "websiteUrl")
+    private String websiteUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status_intern", nullable = false)
@@ -85,7 +89,7 @@ public class InternDeclareRequest extends BaseEntity<Long> implements Serializab
         this.note = note;
     }
 
-    public String getSemester() {
+    public Semester getSemester() {
         return semester;
     }
 
@@ -121,7 +125,7 @@ public class InternDeclareRequest extends BaseEntity<Long> implements Serializab
         return student;
     }
 
-    public void setSemester(String semester) {
+    public void setSemester(Semester semester) {
         this.semester = semester;
     }
 
@@ -156,4 +160,22 @@ public class InternDeclareRequest extends BaseEntity<Long> implements Serializab
     public void setStudent(Student student) {
         this.student = student;
     }
+
+    public String getWebsiteUrl() {
+        return websiteUrl;
+    }
+
+    public void setWebsiteUrl(String websiteUrl) {
+        this.websiteUrl = websiteUrl;
+    }
+
+    // public Job getJob() {
+    //     return job;
+    // }
+
+    // public void setJob(Job job) {
+    //     this.job = job;
+    // }
+
+    
 }

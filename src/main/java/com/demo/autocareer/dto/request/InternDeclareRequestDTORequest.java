@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.demo.autocareer.model.Semester;
+
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,17 +18,17 @@ import lombok.Setter;
 @Getter
 @Data
 public class InternDeclareRequestDTORequest implements Serializable{
-    private String semester;
+    private Semester semester;
     private String companyName;
     private String companyAddress;
     private String position;
     private String contactPerson;
     private String contactPhone;
+    private String websiteUrl;
     private String statusIntern; 
-    private Long jobDetailId;  
     private Long studentId;
 
-    public String getSemester() {
+    public Semester getSemester() {
         return semester;
     }
 
@@ -54,11 +56,11 @@ public class InternDeclareRequestDTORequest implements Serializable{
         return statusIntern;
     }
 
-    public Long getJobDetailId() {
-        return jobDetailId;
-    }
-
     public Long getStudentId() {
         return studentId;
+    }
+
+    public String getWebSiteUrl(){
+        return websiteUrl;
     }
 }

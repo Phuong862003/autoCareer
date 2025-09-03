@@ -4,4 +4,6 @@ public enum  StatusRequest {
     PENDING,
     APPROVED,
     REJECTED,
+    COMPLETED,
+    NOT_YET
 }

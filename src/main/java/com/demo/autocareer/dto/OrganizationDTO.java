@@ -5,6 +5,7 @@ import java.io.Serializable;
 import com.demo.autocareer.dto.response.UserDTOResponse;
 import com.demo.autocareer.model.User;
 import com.demo.autocareer.model.enums.OrganizationType;
+import com.demo.autocareer.model.enums.StatusRequest;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -31,4 +32,9 @@ public class OrganizationDTO implements Serializable{
     private String logo_img;
     private String banner_img;
     UserDTOResponse user;
+    private StatusRequest statusRequest;
+
+    public void setStatusRequest(StatusRequest statusRequest){
+        this.statusRequest = statusRequest;
+    }
 }

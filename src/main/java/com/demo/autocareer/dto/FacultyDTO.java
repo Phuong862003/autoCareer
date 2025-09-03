@@ -11,9 +11,9 @@ import lombok.Setter;
 @Builder
 public class FacultyDTO implements Serializable{
     private Long id;
-    private String faculty_name;
+    private String facultyName;
 
-    public String getFaculty_name(){
-        return faculty_name;
+    public String getFacultyName(){
+        return facultyName;
     }
 }

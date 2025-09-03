@@ -23,6 +23,7 @@ import com.demo.autocareer.dto.request.ApplyJobDTORequest;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
 import com.demo.autocareer.dto.request.InternDeclareRequestDTORequest;
+import com.demo.autocareer.dto.request.StudentDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.ResponseData;
@@ -51,12 +52,12 @@ public class StudentController {
         return ResponseData.builder()
                 .status(HttpStatus.OK.value())
                 .message("SUCCESS")
-                .data(studentService.getStudentFromToken())
+                .data(studentService.getProfileById())
                 .build();
     }
 
     @PutMapping("/update")
-    public ResponseData<?> updateStudents(@RequestBody StudentDTO studentDTO) {
+    public ResponseData<?> updateStudents(@RequestBody StudentDTORequest studentDTO) {
         return ResponseData.builder()
                 .status(HttpStatus.OK.value())
                 .message("SUCCESS")

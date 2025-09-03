@@ -32,6 +32,8 @@ public class BaseFilterRequest {
 
     private Long provinceId;
 
+    private Long fieldId;
+
     private Map<String, String> filters;
 
     public String getKeyword() {
@@ -68,5 +70,9 @@ public class BaseFilterRequest {
 
     public void setFilters(Map<String, String> filters){
         this.filters = filters;
+    }
+
+    public Long getFieldId(){
+        return fieldId;
     }
 }

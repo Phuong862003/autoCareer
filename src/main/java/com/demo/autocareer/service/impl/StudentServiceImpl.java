@@ -15,6 +15,7 @@ import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.InternDeclareRequestDTOResponse;
 import com.demo.autocareer.dto.response.StudentDTOResponse;
 import com.demo.autocareer.exception.ErrorCode;
+import com.demo.autocareer.filter.StudentInternFilter;
 import com.demo.autocareer.model.ApplyJob;
 import com.demo.autocareer.model.District;
 import com.demo.autocareer.model.Job;
@@ -46,9 +47,11 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.InternDeclareRequestDTORequest;
+import com.demo.autocareer.dto.request.StudentDTORequest;
 import com.demo.autocareer.mapper.ApplyJobMapper;
 import com.demo.autocareer.mapper.InternDeclareRequestMapper;
 import com.demo.autocareer.mapper.StudentMapper;
+import com.demo.autocareer.mapper.StudentProMapper;
 import com.demo.autocareer.model.InternDeclareRequest;
 import com.demo.autocareer.repository.ApplyJobRepository;
 import com.demo.autocareer.repository.JobDetailRepository;
@@ -91,7 +94,8 @@ public class StudentServiceImpl implements StudentService {
     private ApplyJobMapper applyJobMapper;
     @Autowired
     private StudentMapper studentMapper;
-
+    @Autowired
+    private StudentProMapper studentProMapper;
     @Autowired
     private InternDeclareRequestMapper internDeclareMapper;
 
@@ -114,10 +118,10 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public StudentDTOResponse updateProfile(StudentDTO studentDTO){
+    public StudentDTOResponse updateProfile(StudentDTORequest studentDTO){
         Student student = getStudentFromToken();
         
-        studentMapper.partialUpdate(student, studentDTO);
+        studentProMapper.partialUpdate(student, studentDTO);
 
         if(studentDTO.getDistrictId() != null){
             District district = districtRepository.findById(studentDTO.getDistrictId())
@@ -144,7 +148,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         studentRepository.save(student);
-        return studentMapper.mapEntityToResponse(student);
+        return studentProMapper.mapEntityToResponse(student);
     }
 
     @Override
@@ -160,11 +164,8 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public InternDeclareRequestDTOResponse declareIntern(InternDeclareRequestDTORequest dto){
         Student student = getStudentFromToken();
-        Job job = jobDetailRepository.findById(dto.getJobDetailId())
-            .orElseThrow(() -> new RuntimeException("Job not found"));
 
         InternDeclareRequest entity = internDeclareMapper.mapRequestToEntity(dto);
-        entity.setJobDetail(job);
         entity.setStudent(student);
         entity.setStatusIntern(StatusIntern.WAITING);
         internDeclareRepository.save(entity);
@@ -184,7 +185,7 @@ public class StudentServiceImpl implements StudentService {
     public BasePageResponse<ApplyJobDTOResponse> getJobApply(BaseFilterRequest request, Pageable pageable){
         Student student = getStudentFromToken();
         Specification<ApplyJob> spec = baseSpecification
-            .build(request, "job.title", "ApplyJobStatus", "createdAt", null, null)
+            .build(request, "job.title", "applyJobStatus", "createdAt", null, null, null)
             .and((root, query, cb) -> cb.equal(root.get("student"), student));
 
         Sort sort = baseSpecification.buildSort(request, "job.title");

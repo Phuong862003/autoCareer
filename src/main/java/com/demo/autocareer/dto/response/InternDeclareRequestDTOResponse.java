@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.demo.autocareer.dto.StudentDTO;
 import com.demo.autocareer.model.Job;
+import com.demo.autocareer.model.Semester;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,12 +22,13 @@ import lombok.Setter;
 @Data
 public class InternDeclareRequestDTOResponse implements Serializable{
     private Long id;
-    private String semester;
+    private Semester semester;
     private String companyName;
     private String companyAddress;
     private String position;
     private String contactPerson;
     private String contactPhone;
+    private String websiteUrl;
     private String statusIntern;
     private JobDTOResponse job;
     private StudentDTOResponse student;

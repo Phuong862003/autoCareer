@@ -9,14 +9,18 @@ import com.demo.autocareer.dto.OrganizationFacultyDTO;
 import com.demo.autocareer.dto.StudentSkillDTO;
 import com.demo.autocareer.dto.SubFieldDTO;
 import com.demo.autocareer.model.enums.Gender;
+import com.demo.autocareer.model.enums.StatusIntern;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class StudentDTOResponse implements Serializable {
     private Long id;
     private String name;
@@ -32,6 +36,7 @@ public class StudentDTOResponse implements Serializable {
     private OrganizationFacultyDTO organizationFaculty;
     private SubFieldDTO subField; 
     private List<StudentSkillDTO> studentSkills;
+    private StatusIntern statusIntern;
 
     public Long getId() { return id; }
     public String getName() { return name; }
@@ -47,4 +52,9 @@ public class StudentDTOResponse implements Serializable {
     public OrganizationFacultyDTO getOrganizationFaculty() { return organizationFaculty; }
     public SubFieldDTO getSubField() { return subField; }
     public List<StudentSkillDTO> getStudentSkills() { return studentSkills; }
+    public StatusIntern getStatusIntern(){ return statusIntern; }
+    public void setStatusIntern(StatusIntern statusIntern) {
+        this.statusIntern = statusIntern;
+    }
+
 }

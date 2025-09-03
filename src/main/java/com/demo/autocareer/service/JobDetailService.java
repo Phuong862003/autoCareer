@@ -13,8 +13,9 @@ import com.demo.autocareer.model.User;
 public interface  JobDetailService {
     Organization getCompanyFromToken();
     JobDTOResponse getJobDetail(Long id);
+    JobDTOResponse getJobDetailPortal(Long id);
     JobDTOResponse createJob(JobDTORequest request);
     JobDTOResponse updateJob(Long id, JobDTORequest request);
     void deleteJob(Long id);
-    BasePageResponse<JobDTOResponse> getAllJobs(BaseFilterRequest request, Pageable pageable);
+    BasePageResponse<JobDTOResponse> getAllJobs(BaseFilterRequest request, String salaryFilter, Pageable pageable);
 }

@@ -28,5 +28,9 @@ import lombok.experimental.FieldDefaults;
 @Table(name = "faculty")
 public class Faculty extends BaseEntity<Long> implements Serializable{
     @Column(name = "faculty_name")
-    String faculty_name;
+    String facultyName;
+
+    public String getFacultyName(){
+        return facultyName;
+    }
 }

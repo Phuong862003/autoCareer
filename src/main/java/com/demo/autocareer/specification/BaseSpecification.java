@@ -26,7 +26,8 @@ public class BaseSpecification<T> {
                                     String enumField,
                                     String createdAtField,
                                     String districtFieldPath,
-                                    String provinceFieldPath){
+                                    String provinceFieldPath, 
+                                    String FieldPath){
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if(StringUtils.hasText(request.getKeyword()) && keywordField != null){
@@ -41,11 +42,13 @@ public class BaseSpecification<T> {
             Map<String, String> filters = request.getFilters();
             if (filters != null && !filters.isEmpty()) {
                 for (Map.Entry<String, String> entry : filters.entrySet()) {
-                    if (StringUtils.hasText(entry.getValue())) {
-                        predicates.add(cb.equal(getPath(root, entry.getKey()).as(String.class), entry.getValue()));
+                    String value = entry.getValue();
+                    if (StringUtils.hasText(value)) {
+                        predicates.add(cb.equal(getPath(root, entry.getKey()).as(String.class), value));
                     }
                 }
             }
+
 
             if (request.getCreatedAtFrom() != null && createdAtField != null) {
                 predicates.add(cb.greaterThanOrEqualTo(getPath(root, createdAtField).as(Date.class), request.getCreatedAtFrom()));
@@ -63,6 +66,9 @@ public class BaseSpecification<T> {
                 predicates.add(cb.equal(join.get("province").get("id"), request.getProvinceId()));
             }
 
+            if (request.getFieldId() != null && FieldPath != null) {
+                predicates.add(cb.equal(getPath(root, FieldPath).get("id"), request.getFieldId()));
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

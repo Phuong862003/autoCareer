@@ -1,6 +1,7 @@
 package com.demo.autocareer.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -13,6 +14,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -67,11 +69,22 @@ public class Organization extends BaseEntity<Long> implements Serializable{
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     User user;
 
+    @OneToMany(mappedBy = "company")
+    private List<InternshipRequest> internshipRequestsAsCompany;
+
+    @OneToMany(mappedBy = "university")
+    private List<InternshipRequest> internshipRequestsAsUniversity;
+
+
     public void setOrganizationName(String organizationName){
         this.organizationName = organizationName;
     }
 
     public void setOrganizationType(OrganizationType organizationType){
         this.organizationType = organizationType;
+    }
+
+    public List<InternshipRequest> getInternshipRequestsAsCompany(){
+        return internshipRequestsAsCompany;
     }
 }

@@ -44,4 +44,9 @@ public class SubField extends BaseEntity<Long> implements Serializable{
     public Field getField(){
         return field;
     }
+
+    public String getSubFieldName() {
+        return sub_field_name;
+    }
+    
 }

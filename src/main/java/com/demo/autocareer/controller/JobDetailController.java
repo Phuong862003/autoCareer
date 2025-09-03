@@ -1,6 +1,7 @@
 package com.demo.autocareer.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.demo.autocareer.service.JobDetailService;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
@@ -29,13 +31,23 @@ public class JobDetailController {
     @GetMapping("/list")
     public ResponseData<BasePageResponse<JobDTOResponse>> getApplyJob(
                                     @ModelAttribute BaseFilterRequest baseFilterRequest,
+                                    @RequestParam(value = "salaryFilter", required = false) String salaryFilter,
                                     @ModelAttribute BasePageRequest basePageRequest) {
         Pageable pageable = basePageRequest.toPageable();
-        BasePageResponse<JobDTOResponse> result = jobDetailService.getAllJobs(baseFilterRequest, pageable);
+        BasePageResponse<JobDTOResponse> result = jobDetailService.getAllJobs(baseFilterRequest, salaryFilter, pageable);
         return ResponseData.<BasePageResponse<JobDTOResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message("GET APPLY JOB SUCCESS")
                 .data(result)
+                .build();
+    }
+
+    @GetMapping("/job-detail/{id}")
+    public ResponseData<?> getJobDetail(@PathVariable Long id) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(jobDetailService.getJobDetailPortal(id))
                 .build();
     }
 }
