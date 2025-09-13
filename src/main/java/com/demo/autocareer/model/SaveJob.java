@@ -24,21 +24,15 @@ import lombok.experimental.FieldDefaults;
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "recommendation_job")
-public class RecommendationJob extends BaseEntity<Long> implements Serializable{
-    @ManyToOne(fetch = FetchType.EAGER)
+@Table(name = "savejob")
+public class SaveJob extends BaseEntity<Long> implements Serializable{
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
-    Student student;
+    private Student student;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id", nullable = false)
-    Job job;
-
-    @Column(name = "score")
-    Double score;
-
-    @Column(name = "model_type")
-    String modelType;
+    private Job job;
 
     public Student getStudent() {
         return student;
@@ -55,23 +49,5 @@ public class RecommendationJob extends BaseEntity<Long> implements Serializable{
     public void setJob(Job job) {
         this.job = job;
     }
-
-    public Double getScore() {
-        return score;
-    }
-
-    public String getModelType() {
-        return modelType;
-    }
-
-    public void setModelType(String modelType) {
-        this.modelType = modelType;
-    }
-
-    public void setScore(Double score) {
-        this.score = score;
-    }
-    
-    
 
 }

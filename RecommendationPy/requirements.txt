@@ -1,0 +1,13 @@
+pandas
+numpy
+sqlalchemy
+pymysql
+scikit-learn
+redis
+joblib
+tqdm
+kafka-python
+implicit
+faiss-cpu
+sentence-transformers
+scipy

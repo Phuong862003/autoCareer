@@ -1,6 +1,7 @@
 package com.demo.autocareer.model;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -43,6 +44,9 @@ public class StudentBehavior extends BaseEntity<Long> implements Serializable{
     @Column(name = "behavior_type")
     BehaviorType behaviorType;
 
+    @Column(name = "timestamp")
+    Date timestamp;
+
     public Student getStudent() {
         return student;
     }
@@ -65,6 +69,14 @@ public class StudentBehavior extends BaseEntity<Long> implements Serializable{
 
     public void setBehaviorType(BehaviorType behaviorType) {
         this.behaviorType = behaviorType;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 
     

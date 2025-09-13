@@ -20,6 +20,7 @@ import com.demo.autocareer.model.ApplyJob;
 import com.demo.autocareer.model.District;
 import com.demo.autocareer.model.Job;
 import com.demo.autocareer.model.OrganizationFaculty;
+import com.demo.autocareer.model.Semester;
 import com.demo.autocareer.model.Student;
 import com.demo.autocareer.model.SubField;
 import com.demo.autocareer.model.enums.StatusIntern;
@@ -164,7 +165,14 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public InternDeclareRequestDTOResponse declareIntern(InternDeclareRequestDTORequest dto){
         Student student = getStudentFromToken();
+        Semester semester = dto.getSemester();
 
+        // Check trùng
+        if (internDeclareRepository.existsBySemesterAndStudent(semester, student)) {
+            throw new IllegalArgumentException(
+                "Sinh viên đã khai báo thực tập cho học kỳ này. Không thể khai báo thêm."
+            );
+        }
         InternDeclareRequest entity = internDeclareMapper.mapRequestToEntity(dto);
         entity.setStudent(student);
         entity.setStatusIntern(StatusIntern.WAITING);

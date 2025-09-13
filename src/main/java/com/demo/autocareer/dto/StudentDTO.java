@@ -42,7 +42,7 @@ public class StudentDTO implements Serializable{
         return dob;
     }
 
-    public int getGraduatedYear(){
+    public Integer getGraduatedYear(){
         return graduatedYear;
     }
 

@@ -1,4 +1,3 @@
-version: '3'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -16,26 +15,34 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      # Khai báo 2 listeners: 1 cho container, 1 cho host
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
-      - "9092:9092"   
-  # mysql:
-  #   image: 'mysql:latest'
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: 715826    
-  #     MYSQL_DATABASE: internlink     
-  #     MYSQL_USER: internlink   
-  #     MYSQL_PASSWORD: 715826   
-  #   ports:
-  #     - '3306'
-  
-  springboot-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+      - "9092:9092"   # để container khác connect
+      - "29092:29092" # để host (Windows) connect
+# để local Spring Boot connect
+
+  redis:
+    image: redis:7
+    container_name: redis
     ports:
-      - "8080:8080"
+      - "6379:6379"
+
+  recommendation-train:
+    build:
+      context: ./RecommendationPy
+      dockerfile: Dockerfile
+    container_name: recommendation-train
     depends_on:
       - kafka
+      - redis
+    environment:
+      MYSQL_URI: "mysql+pymysql://root:715826@host.docker.internal:3306/internlink"
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      KAFKA_TOPIC: "student_recommendation"

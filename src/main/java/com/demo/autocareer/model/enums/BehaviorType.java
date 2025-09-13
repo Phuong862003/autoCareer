@@ -6,4 +6,6 @@ public enum BehaviorType {
     SEARCH,
     APPLY,
     READ,
+    VIEW,
+    SAVE,
 }

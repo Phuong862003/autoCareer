@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +24,16 @@ import com.demo.autocareer.dto.request.ApplyJobDTORequest;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
 import com.demo.autocareer.dto.request.InternDeclareRequestDTORequest;
+import com.demo.autocareer.dto.request.SaveJobDTORequest;
+import com.demo.autocareer.dto.request.StudentBehaviorDTORequest;
 import com.demo.autocareer.dto.request.StudentDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.ResponseData;
+import com.demo.autocareer.dto.response.SaveJobDTOResponse;
 import com.demo.autocareer.service.ApplyJobService;
+import com.demo.autocareer.service.SaveJobService;
+import com.demo.autocareer.service.StudentBehaviorService;
 import com.demo.autocareer.service.StudentService;
 import com.demo.autocareer.service.storage.FileDownloadService;
 
@@ -41,10 +47,16 @@ public class StudentController {
 
     private final ApplyJobService applyJobService;
 
-    public StudentController(StudentService studentService, FileDownloadService fileDownloadService, ApplyJobService applyJobService) {
+    private final StudentBehaviorService studentBehaviorService;
+
+    private final SaveJobService saveJobService;
+
+    public StudentController(StudentService studentService, FileDownloadService fileDownloadService, ApplyJobService applyJobService, StudentBehaviorService studentBehaviorService, SaveJobService saveJobService) {
         this.studentService = studentService;
         this.fileDownloadService = fileDownloadService;
         this.applyJobService = applyJobService;
+        this.studentBehaviorService =  studentBehaviorService;
+        this.saveJobService = saveJobService;
     }
 
     @GetMapping("/profile")
@@ -105,6 +117,47 @@ public class StudentController {
                 .data(result)
                 .build();
     }
+
+    @PostMapping("/behavior")
+    public ResponseData<?>  sendBehavior(@RequestBody StudentBehaviorDTORequest request) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("successfully")
+                .data(studentBehaviorService.recordBehavior(request))
+                .build();
+    }
+
+    @PostMapping("/saveJob")
+    public ResponseData<?>  saveJob(@RequestBody SaveJobDTORequest request) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("successfully")
+                .data(saveJobService.saveJob(request))
+                .build();
+    }
+
+    @GetMapping("/list-saveJob")
+    public ResponseData<BasePageResponse<SaveJobDTOResponse>> getListSaveJob(
+                                    @ModelAttribute BaseFilterRequest baseFilterRequest,
+                                    @ModelAttribute BasePageRequest basePageRequest) {
+        Pageable pageable = basePageRequest.toPageable();
+        BasePageResponse<SaveJobDTOResponse> result = saveJobService.getList(baseFilterRequest, pageable);
+        return ResponseData.<BasePageResponse<SaveJobDTOResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("GET SAVE JOB SUCCESS")
+                .data(result)
+                .build();
+    }
+
+    @DeleteMapping("/unSave/{id}")
+    public ResponseData<?> unSave(@PathVariable Long id) {
+        saveJobService.deleteSaveJob(id);
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("UNSAVE SUCCESS")
+                .data(null)
+                .build();
+    } 
 }
 
 
