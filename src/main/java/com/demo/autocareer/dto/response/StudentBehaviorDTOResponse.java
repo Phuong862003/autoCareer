@@ -15,7 +15,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentBehaviorDTOResponse {
-    private Job job;
+    private StudentDTOResponse student;
+    private JobDTOResponse job;
     private BehaviorType behaviorType;
     private Date timestamp;
 }

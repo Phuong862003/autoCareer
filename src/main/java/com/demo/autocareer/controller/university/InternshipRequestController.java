@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,13 +15,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
+import com.demo.autocareer.dto.request.InternAssignHandleRequest;
+import com.demo.autocareer.dto.request.InternRequestApprovedDTORequest;
 import com.demo.autocareer.dto.request.InternshipRequestDTORequest;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.InternRequestFileDTOResponse;
 import com.demo.autocareer.dto.response.InternshipAssignDTOResponse;
 import com.demo.autocareer.dto.response.ResponseData;
+import com.demo.autocareer.model.enums.StatusRequest;
 import com.demo.autocareer.service.InternshipAssignmentService;
 import com.demo.autocareer.service.InternshipRequestService;
+
+import jakarta.validation.Valid;
 
 
 @RestController
@@ -58,11 +64,11 @@ public class InternshipRequestController {
     }
     
     @GetMapping("/internRequest-detail/{id}")
-    public ResponseData<?> getDetail(@PathVariable Long id){
+    public ResponseData<?> getDetail(@PathVariable Long id,  @RequestParam StatusRequest status){
         return ResponseData.builder()
                 .status(HttpStatus.OK.value())
                 .message("SUCCESS")
-                .data(internshipRequestService.getDetailInternRequest(id))
+                .data(internshipRequestService.getDetailInternRequest(id, status))
                 .build();
     }
 

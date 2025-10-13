@@ -52,7 +52,7 @@ public class InternDeclareRequest extends BaseEntity<Long> implements Serializab
     @Column(name = "contact_phone")
     private String contactPhone;
 
-    @Column(name = "websiteUrl")
+    @Column(name = "website_url")
     private String websiteUrl;
 
     @Enumerated(EnumType.STRING)

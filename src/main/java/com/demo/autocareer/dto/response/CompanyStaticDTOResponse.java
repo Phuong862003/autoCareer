@@ -2,6 +2,8 @@ package com.demo.autocareer.dto.response;
 
 import java.util.Map;
 
+import com.demo.autocareer.model.enums.ApplyJobStatus;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,4 +17,5 @@ public class CompanyStaticDTOResponse {
     private long totalApplicants;
     private long hiredApplicants;
     private Map<Integer, Long> monthlyJobStats;
+    private Map<Integer, Map<ApplyJobStatus, Long>> monthlyApplicantsStats;
 }

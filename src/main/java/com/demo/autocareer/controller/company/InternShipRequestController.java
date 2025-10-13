@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.demo.autocareer.dto.request.BaseFilterRequest;
 import com.demo.autocareer.dto.request.BasePageRequest;
+import com.demo.autocareer.dto.request.InternAssignHandleRequest;
 import com.demo.autocareer.dto.request.InternshipApprovedDTORequest;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -116,6 +117,15 @@ public class InternShipRequestController {
                 .status(HttpStatus.OK.value())
                 .message("GET LIST INTERNSHIP SUCCESS")
                 .data(result)
+                .build();
+    }
+    
+    @PutMapping("/handleRequest/{id}")
+    public ResponseData<?> handleRequest(@PathVariable Long id, @RequestBody @Valid InternAssignHandleRequest request) {
+       return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("APPROVED SUCCESS")
+                .data(internshipAssignmentService.updateStatus(id, request))
                 .build();
     }
 }

@@ -42,6 +42,7 @@ public class JobDTOResponse implements Serializable{
     WorkingType workingType;
     private String working_address;
     OrganizationDTO organization;
+    private Boolean applied;
     FieldDTO field;
     private List<ProvinceDTO> provinces; 
     public List<ProvinceDTO> getProvinces(){
@@ -50,5 +51,9 @@ public class JobDTOResponse implements Serializable{
 
     public FieldDTO getField(){
         return field;
+    }
+
+    public void setApplied(Boolean applied){
+        this.applied = applied;
     }
 }

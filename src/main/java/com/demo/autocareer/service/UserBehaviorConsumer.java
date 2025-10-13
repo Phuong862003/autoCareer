@@ -19,7 +19,7 @@ public class UserBehaviorConsumer {
     private RedisTemplate<String, Object> redisTemplate;
 
     private static final Map<String, Double> EVENT_SCORE = Map.of(
-        "VIEW", 1.0,
+        "SEARCH", 1.0,
         "CLICK", 2.0,
         "SAVE", 3.0,
         "APPLY", 5.0

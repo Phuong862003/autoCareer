@@ -11,10 +11,16 @@ import com.demo.autocareer.mapper.ProvinceMapper;
 import com.demo.autocareer.repository.DistrictRepository;
 import com.demo.autocareer.repository.ProvinceRepository;
 import com.demo.autocareer.service.LocationService;
+import com.demo.autocareer.utils.ExceptionUtil;
 import com.demo.autocareer.dto.DistrictDTO;
+import com.demo.autocareer.dto.OrganizationDTO;
 import com.demo.autocareer.dto.ProvinceDTO;
 import com.demo.autocareer.dto.SemesterDTO;
+import com.demo.autocareer.exception.ErrorCode;
+import com.demo.autocareer.mapper.OrganizationMapper;
 import com.demo.autocareer.mapper.SemesterMapper;
+import com.demo.autocareer.model.Organization;
+import com.demo.autocareer.repository.OrganizationRepository;
 import com.demo.autocareer.repository.SemesterRepository;
 
 @Service
@@ -33,6 +39,12 @@ public class LocationServiceImpl implements LocationService{
 
     @Autowired
     private SemesterRepository semesterRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private OrganizationMapper orgMapper;
 
     @Autowired
     private SemesterMapper semesterMapper;
@@ -59,5 +71,13 @@ public class LocationServiceImpl implements LocationService{
                 .stream()
                 .map(semesterMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public OrganizationDTO getOrganizationDetail(Long id){
+        Organization org = organizationRepository.findById(id)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.COMPANY_NOT_FOUND));
+        
+        return orgMapper.mapEntityToResponse(org);
     }
 }

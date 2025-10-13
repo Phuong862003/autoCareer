@@ -31,6 +31,7 @@ public class OrganizationDTO implements Serializable{
     private String address;
     private String logo_img;
     private String banner_img;
+    private OrganizationType organizationType;
     UserDTOResponse user;
     private StatusRequest statusRequest;
 

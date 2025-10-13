@@ -1,6 +1,7 @@
 package com.demo.autocareer.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 import com.demo.autocareer.dto.OrganizationDTO;
 import com.demo.autocareer.dto.request.OrganizationDTORequest;
@@ -15,6 +16,9 @@ public interface OrganizationMapper extends EntityMapper<OrganizationDTORequest,
     // OrganizationDTO toDto(Organization organization);
 
     Organization mapRequestToEntity(RegisterDTORequest dto, User user);
+
+    @Override
+    void partialUpdate(@MappingTarget Organization org, OrganizationDTORequest request);
 
     default Organization fromId(Long id) {
         if (id == null) return null;

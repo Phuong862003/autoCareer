@@ -55,6 +55,12 @@ public class InternshipRequestFile extends BaseEntity<Long> implements Serializa
     @Column(name="status")
     private StatusRequestFile status;
 
+    @Column(name = "approved_by")
+    private String approvedBy;
+
+    @Column(name = "note")
+    private String note;
+
     public InternshipRequest getInternshipRequest(){
         return internshipRequest;
     }
@@ -69,6 +75,14 @@ public class InternshipRequestFile extends BaseEntity<Long> implements Serializa
 
     public String getUploadedBy(){
         return uploadedBy;
+    }
+
+    public String getApprovedBy(){
+        return approvedBy;
+    }
+
+    public String getNote(){
+        return note;
     }
 
     public StatusRequestFile getStatus(){
@@ -93,5 +107,13 @@ public class InternshipRequestFile extends BaseEntity<Long> implements Serializa
 
     public void setStatus(StatusRequestFile status){
         this.status = status;
+    }
+
+    public void setApprovedBy(String approvedBy){
+        this.approvedBy = approvedBy;
+    }
+
+    public void setNote(String note){
+        this.note = note;
     }
 }

@@ -8,10 +8,12 @@ import com.demo.autocareer.dto.request.JobDTORequest;
 import com.demo.autocareer.dto.response.BasePageResponse;
 import com.demo.autocareer.dto.response.JobDTOResponse;
 import com.demo.autocareer.model.Organization;
+import com.demo.autocareer.model.Student;
 import com.demo.autocareer.model.User;
 
 public interface  JobDetailService {
     Organization getCompanyFromToken();
+    Student getStudentFromToken();
     JobDTOResponse getJobDetail(Long id);
     JobDTOResponse getJobDetailPortal(Long id);
     JobDTOResponse createJob(JobDTORequest request);

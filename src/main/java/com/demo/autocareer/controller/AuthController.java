@@ -97,9 +97,9 @@ public class AuthController {
     public void verify(@RequestParam String token, HttpServletResponse response) throws IOException {
         boolean result = authService.verifyToken(token);
         if (result) {
-            response.sendRedirect("http://localhost:3000/auth/register?status=success");
+            response.sendRedirect("http://localhost:4173/auth/register?status=success");
         } else {
-            response.sendRedirect("http://localhost:3000/auth/register?status=fail");
+            response.sendRedirect("http://localhost:4173/auth/register?status=fail");
         }
     }
     
@@ -127,7 +127,7 @@ public class AuthController {
     public void handleResetPasswordLink(@RequestParam String token, HttpServletResponse response) throws IOException {
         String email = jwtUtil.getEmailFromVerificationToken(token);
         if (email == null) {
-            response.sendRedirect("http://localhost:3000/reset-password-invalid");
+            response.sendRedirect("http://localhost:4173/reset-password-invalid");
             return;
         }
 
@@ -138,7 +138,7 @@ public class AuthController {
         cookie.setMaxAge(5 * 60); // 5 phút
         response.addCookie(cookie);
 
-        response.sendRedirect("http://localhost:3000/auth/login?status=success");
+        response.sendRedirect("http://localhost:4173/auth/login?status=success");
     }
 
 

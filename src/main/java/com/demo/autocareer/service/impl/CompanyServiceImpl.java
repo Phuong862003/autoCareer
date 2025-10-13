@@ -265,6 +265,19 @@ public class CompanyServiceImpl implements CompanyService{
             monthlyStats.put((Integer) row[0], (Long) row[1]);
         }
 
+        Map<Integer, Map<ApplyJobStatus, Long>> monthlyApplicants = new HashMap<>();
+
+        for (Object[] row : applyJobRepository.countApplicantsByMonthAndStatus(companyId)) {
+            Integer month = (Integer) row[0];
+            ApplyJobStatus status = (ApplyJobStatus) row[1];
+            Long count = (Long) row[2];
+
+            monthlyApplicants
+                .computeIfAbsent(month, k -> new HashMap<>())
+                .put(status, count);
+        }
+
+
         return CompanyStaticDTOResponse.builder()
                 .totalJobs(totalJobs)
                 .activeJobs(activeJobs)
@@ -273,6 +286,7 @@ public class CompanyServiceImpl implements CompanyService{
                 .totalApplicants(totalApplicants)
                 .hiredApplicants(hiredApplicants)
                 .monthlyJobStats(monthlyStats)
+                .monthlyApplicantsStats(monthlyApplicants)
                 .build();
     }
 

@@ -16,6 +16,7 @@ import com.demo.autocareer.dto.response.InternDeclareRequestDTOResponse;
 import com.demo.autocareer.dto.response.JobDTOResponse;
 import com.demo.autocareer.dto.response.StudentDTOResponse;
 import com.demo.autocareer.filter.StudentInternFilter;
+import com.demo.autocareer.model.InternDeclareRequest;
 import com.demo.autocareer.model.Student;
 
 @Service
@@ -26,4 +27,6 @@ public interface StudentService {
     String uploadCV(MultipartFile file);
     InternDeclareRequestDTOResponse declareIntern(InternDeclareRequestDTORequest request);
     BasePageResponse<ApplyJobDTOResponse> getJobApply(BaseFilterRequest request, Pageable pageable);
+    BasePageResponse<InternDeclareRequestDTOResponse> getRequestDeclare(BaseFilterRequest request, Pageable pageable);
+    InternDeclareRequestDTOResponse declareInternDetail(Long id);
 }

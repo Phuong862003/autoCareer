@@ -11,6 +11,7 @@ import com.demo.autocareer.service.LocationService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
@@ -47,6 +48,15 @@ public class LocationController {
                 .status(HttpStatus.OK.value())
                 .message("GET  SUCCESS")
                 .data(locationService.findAllSemester())
+                .build();
+    }
+
+    @GetMapping("/company-detail/{id}")
+    public ResponseData<?> getCompanyDetail(@PathVariable Long id) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(locationService.getOrganizationDetail(id))
                 .build();
     }
 }

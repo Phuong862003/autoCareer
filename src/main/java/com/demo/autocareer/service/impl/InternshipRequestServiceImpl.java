@@ -105,13 +105,15 @@ public class InternshipRequestServiceImpl implements InternshipRequestService{
 
 
     @Override
-    public InternshipRequestDTOResponse getDetailInternRequest(Long companyId){
+    public InternshipRequestDTOResponse getDetailInternRequest(Long companyId, StatusRequest statusRequest){
         Organization uni = getFromToken();
-        InternshipRequest intern = internshipRequestRepository.findByCompany_IdAndUniversity(companyId, uni)
+        InternshipRequest intern = internshipRequestRepository
+            .findByCompany_IdAndUniversityAndStatusRequest(companyId, uni, statusRequest)
             .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.INTERN_REQUEST_NOT_FOUND));
-        
+
         return internshipMapper.mapEntityToResponse(intern);
     }
+
 
     @Override
     public InternRequestStaticDTOResponse getUniInternRequestStatic(){

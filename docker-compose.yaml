@@ -29,8 +29,9 @@ services:
   redis:
     image: redis:7
     container_name: redis
+    command: ["redis-server", "--port", "6378"]
     ports:
-      - "6379:6379"
+      - "6378:6378"
 
   recommendation-train:
     build:
@@ -43,6 +44,6 @@ services:
     environment:
       MYSQL_URI: "mysql+pymysql://root:715826@host.docker.internal:3306/internlink"
       REDIS_HOST: "redis"
-      REDIS_PORT: 6379
+      REDIS_PORT: 6378
       KAFKA_BOOTSTRAP: "kafka:9092"
       KAFKA_TOPIC: "student_recommendation"

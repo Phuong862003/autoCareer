@@ -5,4 +5,5 @@ public enum  StatusRequestFile {
     PENDING,
     INPROGRESS,
     COMPLETED,
+    REJECTED,
 }

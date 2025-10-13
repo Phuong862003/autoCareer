@@ -1,6 +1,7 @@
 package com.demo.autocareer.dto.response;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.demo.autocareer.dto.DistrictDTO;
 import com.demo.autocareer.dto.RoleDTO;
@@ -18,6 +19,10 @@ public class UserDTOResponse implements Serializable{
     private String email;
     private String username;
     private String phoneNumber;
+    private boolean enabled;
     private Long managerId;
-    DistrictDTO district;
+    private AccountStatus accountStatus;
+    private RoleDTO role;
+    private DistrictDTO district;
+    private Date createdAt;
 }

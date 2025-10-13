@@ -35,7 +35,11 @@ public interface InternshipRequestRepository extends JpaRepository<InternshipReq
            "ORDER BY MONTH(r.createdAt)")
     List<Object[]> countRequestsByMonth(@Param("companyId") Long companyId, @Param("year") int year);
 
-    Optional<InternshipRequest> findByCompany_IdAndUniversity(Long companyId, Organization university);
+    Optional<InternshipRequest> findByCompany_IdAndUniversityAndStatusRequest(
+              Long companyId,
+              Organization university,
+              StatusRequest statusRequest
+       );
 
        // Tổng số yêu cầu theo truong
     @Query("SELECT COUNT(r) FROM InternshipRequest r WHERE r.university.id = :universityId")

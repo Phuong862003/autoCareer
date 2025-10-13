@@ -42,12 +42,24 @@ public interface StudentRepository extends JpaRepository<Student, Long>, JpaSpec
     List<Object[]> getStudentStatics(@Param("organizationId") Long organizationId);
 
     @Query("""
-        SELECT MONTH(i.createdAt), COUNT(i.id)
+        SELECT MONTH(i.createdAt) as month, i.statusIntern, COUNT(i.id)
         FROM InternDeclareRequest i
-        WHERE i.statusIntern = 'APPROVED'
-          AND i.student.organizationFaculty.organization.id = :organizationId
-        GROUP BY MONTH(i.createdAt)
-        ORDER BY MONTH(i.createdAt)
+        WHERE i.student.organizationFaculty.organization.id = :organizationId
+        GROUP BY MONTH(i.createdAt), i.statusIntern
+        ORDER BY month
     """)
-    List<Object[]> countStudentByMonth(@Param("organizationId") Long organizationId);
+    List<Object[]> countStudentByMonthAndStatus(@Param("organizationId") Long organizationId);
+
+    @Query("""
+        SELECT fac.facultyName, i.statusIntern, COUNT(s.id)
+        FROM Student s
+        JOIN s.organizationFaculty f
+        JOIN f.faculty fac
+        LEFT JOIN s.internDeclareRequest i
+        WHERE f.organization.id = :organizationId
+        GROUP BY fac.facultyName, i.statusIntern
+        ORDER BY fac.facultyName
+    """)
+    List<Object[]> countStudentByFacultyAndStatus(@Param("organizationId") Long organizationId);
+
 }

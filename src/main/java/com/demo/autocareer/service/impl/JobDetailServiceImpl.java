@@ -22,9 +22,11 @@ import com.demo.autocareer.model.Organization;
 import com.demo.autocareer.model.Student;
 import com.demo.autocareer.model.SubField;
 import com.demo.autocareer.model.enums.JobStatus;
+import com.demo.autocareer.repository.ApplyJobRepository;
 import com.demo.autocareer.repository.FieldRepository;
 import com.demo.autocareer.repository.JobDetailRepository;
 import com.demo.autocareer.repository.OrganizationRepository;
+import com.demo.autocareer.repository.StudentRepository;
 import com.demo.autocareer.repository.SubFieldRepository;
 import com.demo.autocareer.service.JobDetailService;
 import com.demo.autocareer.specification.BaseSpecification;
@@ -46,7 +48,10 @@ public class JobDetailServiceImpl implements JobDetailService{
     private SubFieldRepository subFieldRepository;
     @Autowired
     private FieldRepository fieldRepository;
-
+    @Autowired
+    private ApplyJobRepository applyJobRepository;
+    @Autowired
+    private StudentRepository studentRepository;
     private final BaseSpecification<Job> baseSpecification = new BaseSpecification<>();
 
     @Override
@@ -54,6 +59,13 @@ public class JobDetailServiceImpl implements JobDetailService{
         String email = jwtUtil.getCurrentUserEmail(); 
         return organizationRepository.findByUserEmail(email)
             .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.COMPANY_NOT_FOUND));
+    }
+
+    @Override
+    public Student getStudentFromToken() {
+        String email = jwtUtil.getCurrentUserEmail(); 
+        return studentRepository.findByUserEmail(email)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.STUDENT_NOT_FOUND));
     }
 
     @Override
@@ -172,11 +184,18 @@ public class JobDetailServiceImpl implements JobDetailService{
 
         Field field = job.getField();
         if (field != null) {
-            // Chỉ set subfields nếu field tồn tại
             field.setSubFields(jobSubfields);
             job.setField(field);
         }
-        return jobMapper.mapEntityToResponse(job);
-    }
 
+        JobDTOResponse response = jobMapper.mapEntityToResponse(job);
+        try {
+            Student student = getStudentFromToken();
+            boolean applied = applyJobRepository.existsByStudentAndJob(student, job);
+            response.setApplied(applied);
+        } catch (Exception e) {
+            response.setApplied(false);
+        }
+        return response;
+    }
 }

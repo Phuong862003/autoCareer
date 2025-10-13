@@ -7,6 +7,7 @@ import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -94,6 +96,7 @@ import com.demo.autocareer.utils.ExceptionUtil;
 import com.demo.autocareer.utils.JwtUtil;
 import com.demo.autocareer.utils.PageUtils;
 
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -235,30 +238,49 @@ public class UniversityServiceImpl implements UniversityService{
         }
 
         try {
-            String token = jwtUtil.generateVerificationToken(email);  // thời hạn ngắn 15 phút nếu có cấu hình
-            String verifyLink = "http://localhost:8080/auth/verify?token=" + token;
+            String token = jwtUtil.generateVerificationToken(email);  // token xác thực
+            String verifyLink = "http://localhost:8080/api/auth/verify?token=" + token;
+            String loginLink = "http://localhost:4173/auth/login"; // 🔥 FE login URL
 
-            String messageBody = "Xin chào " + username + ",\n\n"
-                    + "Tài khoản sinh viên của bạn đã được tạo thành công.\n\n"
-                    + "📌 Tên đăng nhập: " + email + "\n"
-                    + "🔐 Mật khẩu tạm thời: " + password + "\n\n"
-                    + "👉 Vui lòng xác minh tài khoản bằng cách nhấn vào đường link dưới đây:\n"
-                    + verifyLink + "\n\n"
-                    + "Sau khi xác minh, bạn có thể đăng nhập tại: http://localhost:8080/auth/login và đổi mật khẩu.\n\n"
-                    + "Trân trọng.";
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
 
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email.trim());
-            message.setSubject("Xác nhận tài khoản sinh viên");
-            message.setText(messageBody);
+            String htmlContent = """
+                <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+                    <h2>Xin chào %s,</h2>
+                    <p>Tài khoản sinh viên của bạn đã được tạo thành công.</p>
 
-            mailSender.send(message);
+                    <p><strong>📌 Tên đăng nhập:</strong> %s<br>
+                    <strong>🔐 Mật khẩu tạm thời:</strong> %s</p>
+
+                    <p>👉 Vui lòng xác minh tài khoản bằng cách nhấn vào nút bên dưới:</p>
+
+                    <a href="%s" 
+                    style="display: inline-block; background-color: #4CAF50; color: white;
+                            padding: 10px 18px; text-decoration: none; border-radius: 5px;
+                            font-weight: bold;">
+                    Xác minh tài khoản
+                    </a>
+
+                    <p style="margin-top: 20px;">Sau khi xác minh, bạn có thể đăng nhập tại:
+                    <a href="%s" style="color: #007bff; text-decoration: none;">Trang đăng nhập</a></p>
+
+                    <p>Trân trọng,<br>Đội ngũ AutoCareer</p>
+                </div>
+                """.formatted(username, email, password, verifyLink, loginLink);
+
+            helper.setTo(email.trim());
+            helper.setSubject("Xác nhận tài khoản sinh viên");
+            helper.setText(htmlContent, true); // true = gửi dạng HTML
+
+            mailSender.send(mimeMessage);
 
             log.info("✅ Đã gửi email xác nhận thành công đến: {}", email);
         } catch (Exception e) {
             log.error("❌ Gửi email thất bại đến {}: {}", email, e.getMessage(), e);
         }
     }
+
 
 
     private List<StudentDTO> parseFile(MultipartFile file) {
@@ -521,19 +543,42 @@ public class UniversityServiceImpl implements UniversityService{
             System.out.println("Total: " + totalStudent + ", Approved: " + totalApproved);
         }
 
-        List<Object[]> monthly = studentRepository.countStudentByMonth(uni.getId());
-        Map<Integer, Long> monthMap = monthly.stream()
-                .collect(Collectors.toMap(
-                        row -> ((Number) row[0]).intValue(),
-                        row -> ((Number) row[1]).longValue()
-                ));
+        List<Object[]> monthlyStatus = studentRepository.countStudentByMonthAndStatus(uni.getId());
+
+        Map<Integer, Map<String, Long>> monthlyByStatus = new HashMap<>();
+        for (Object[] row : monthlyStatus) {
+            Integer month = ((Number) row[0]).intValue();
+            StatusIntern statusEnum = (StatusIntern) row[1];   // ✅ cast về enum
+            String status = statusEnum.name();                 // nếu muốn string
+            
+            Long count = ((Number) row[2]).longValue();
+
+            monthlyByStatus
+                .computeIfAbsent(month, k -> new HashMap<>())
+                .put(status, count);
+        }
+
+        List<Object[]> facultyStatsRaw = studentRepository.countStudentByFacultyAndStatus(uni.getId());
+
+        Map<String, Map<String, Long>> facultyStats = new HashMap<>();
+        for (Object[] row : facultyStatsRaw) {
+            String facultyName = (String) row[0];
+            StatusIntern statusEnum = (StatusIntern) row[1];
+            String status = statusEnum != null ? statusEnum.name() : "NOT_YET";
+            Long count = ((Number) row[2]).longValue();
+
+            facultyStats
+                .computeIfAbsent(facultyName, k -> new HashMap<>())
+                .put(status, count);
+        }
 
         return new StudentStaticDTOResponse(
                 totalStudent,
                 totalApproved,
                 totalWaiting,
                 totalNotYet,
-                monthMap
+                monthlyByStatus,
+                facultyStats
         );
     }
 
@@ -581,9 +626,9 @@ public class UniversityServiceImpl implements UniversityService{
         Page<OrganizationDTO> result = page.map(org -> {
             OrganizationDTO dto = organizationMapper.mapEntityToResponse(org);
 
-            // lấy internshipRequest tương ứng với university đang đăng nhập
             org.getInternshipRequestsAsCompany().stream()
                 .filter(req -> req.getUniversity().getId().equals(uni.getId()))
+                .filter(req -> request.getStatusRequest() == null || req.getStatusRequest().equals(request.getStatus()))
                 .findFirst()
                 .ifPresent(req -> dto.setStatusRequest(req.getStatusRequest()));
 

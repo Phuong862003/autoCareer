@@ -29,7 +29,10 @@ import com.demo.autocareer.utils.ExceptionUtil;
 import com.demo.autocareer.utils.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.transaction.Transactional;
+
 @Service
+@Transactional
 public class StudentBehaviorServiceImpl implements StudentBehaviorService {
     private static final Logger log = LoggerFactory.getLogger(StudentBehaviorServiceImpl.class);
     @Autowired private StudentBehaviorRepository behaviorRepository;
@@ -41,7 +44,7 @@ public class StudentBehaviorServiceImpl implements StudentBehaviorService {
     @Autowired private StudentBehaviorMapper studentBehaviorMapper;
 
     private static final Map<BehaviorType, Double> EVENT_SCORE = Map.of(
-        BehaviorType.VIEW, 1.0,
+        BehaviorType.SEARCH, 1.0,
         BehaviorType.CLICK, 2.0,
         BehaviorType.SAVE, 3.0,
         BehaviorType.APPLY, 5.0
@@ -67,12 +70,11 @@ public class StudentBehaviorServiceImpl implements StudentBehaviorService {
             double score = EVENT_SCORE.getOrDefault(request.getBehaviorType(), 0.0);
 
             // 1️⃣ Lưu DB
-            StudentBehavior behavior = StudentBehavior.builder()
-                    .student(student)
-                    .job(job)
-                    .behaviorType(request.getBehaviorType())
-                    .timestamp(new Date())
-                    .build();
+            StudentBehavior behavior = studentBehaviorMapper.mapRequestToEntity(request);
+            behavior.setStudent(student);
+            behavior.setJob(job);
+            behavior.setBehaviorType(request.getBehaviorType());
+            behavior.setTimestamp(new Date());
             behaviorRepository.save(behavior);
 
             // 2️⃣ Kafka
@@ -93,9 +95,9 @@ public class StudentBehaviorServiceImpl implements StudentBehaviorService {
             // 3️⃣ Redis
             String realtimeKey = "reco:student:realtime:" + student.getId();
             redisTemplate.opsForZSet().incrementScore(realtimeKey, job.getId(), score);
-            redisTemplate.expire(realtimeKey, Duration.ofHours(6));
+            redisTemplate.expire(realtimeKey, Duration.ofHours(3));
 
-            responses.add(studentBehaviorMapper.toDTO(behavior));
+            responses.add(studentBehaviorMapper.mapEntityToResponse(behavior));
         }
 
         return responses;

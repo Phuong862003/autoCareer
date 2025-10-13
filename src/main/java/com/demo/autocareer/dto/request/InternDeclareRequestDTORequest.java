@@ -18,7 +18,7 @@ import com.demo.autocareer.model.Semester;
 @Getter
 @Data
 public class InternDeclareRequestDTORequest implements Serializable{
-    private Semester semester;
+    private Long semesterId;
     private String companyName;
     private String companyAddress;
     private String position;
@@ -28,8 +28,8 @@ public class InternDeclareRequestDTORequest implements Serializable{
     private String statusIntern; 
     private Long studentId;
 
-    public Semester getSemester() {
-        return semester;
+    public Long getSemesterId() {
+        return semesterId;
     }
 
     public String getCompanyName() {
@@ -60,7 +60,7 @@ public class InternDeclareRequestDTORequest implements Serializable{
         return studentId;
     }
 
-    public String getWebSiteUrl(){
+    public String getWebsiteUrl(){
         return websiteUrl;
     }
 }

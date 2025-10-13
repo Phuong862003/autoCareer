@@ -49,5 +49,4 @@ public class CompanyController {
                 .data(result)
                 .build();
     }
-    
 }

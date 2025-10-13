@@ -15,17 +15,21 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.demo.autocareer.dto.InternshipAssignmentExcelDTO;
 import com.demo.autocareer.dto.request.BaseFilterRequest;
+import com.demo.autocareer.dto.request.InternAssignHandleRequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
+import com.demo.autocareer.dto.response.InternAssignHandleResponse;
 import com.demo.autocareer.dto.response.InternRequestFileDTOResponse;
 import com.demo.autocareer.dto.response.InternshipAssignDTOResponse;
 import com.demo.autocareer.excel.ExcelStudentParser;
 import com.demo.autocareer.exception.ErrorCode;
+import com.demo.autocareer.mapper.InternAssignHandleMapper;
 import com.demo.autocareer.mapper.InternRequestFileMapper;
 import com.demo.autocareer.mapper.InternshipAssignMapper;
 import com.demo.autocareer.model.ApplyJob;
@@ -80,6 +84,8 @@ public class InternshipAssignServiceImpl implements InternshipAssignmentService{
     private InternshipRequestFileRepository internshipRequestFileRepository;
     @Autowired
     private InternRequestFileMapper internRequestFileMapper;
+    @Autowired
+    private InternAssignHandleMapper internAssignHandelMapper;
 
     private final BaseSpecification<InternshipAssignment> baseSpecification = new BaseSpecification<>();
     private final BaseSpecification<InternshipRequestFile> baseSpecificationInternRequest = new BaseSpecification<>();
@@ -134,16 +140,16 @@ public class InternshipAssignServiceImpl implements InternshipAssignmentService{
     }
 
     @Override
-    public BasePageResponse<InternshipAssignDTOResponse> getListInternship(Long internshipRequestId, BaseFilterRequest request, Pageable pageable){
-        InternshipRequest internshipRequest = internshipRequestRepository.findById(internshipRequestId)
-            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.INTERN_REQUEST_NOT_FOUND));
+    public BasePageResponse<InternshipAssignDTOResponse> getListInternship(Long requestFileId, BaseFilterRequest request, Pageable pageable){
+        // InternshipRequest internshipRequest = internshipRequestRepository.findById(internshipRequestId)
+        //     .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.INTERN_REQUEST_NOT_FOUND));
 
         Organization comp = getUniFromToken();
         Specification<InternshipAssignment> spec = baseSpecification
             .build(request, "name", "status", null, null, null, null)
             .and((root, query, cb) -> cb.and(
                     cb.equal(root.get("internshipRequest").get("company"), comp),
-                    cb.equal(root.get("internshipRequest").get("id"), internshipRequestId)
+                    cb.equal(root.get("internRequestFile").get("id"), requestFileId)
             ));
 
         Sort sort = baseSpecification.buildSort(request, "name");
@@ -210,5 +216,50 @@ public class InternshipAssignServiceImpl implements InternshipAssignmentService{
         return PageUtils.fromPage(result);
     }
 
+    @Override
+    public InternAssignHandleResponse updateStatus(Long id, InternAssignHandleRequest request){
+        Organization uni = getUniFromToken();
+
+        InternshipRequestFile intern = internshipRequestFileRepository.findById(id)
+            .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.INTERN_REQUEST_NOT_FOUND));
+        
+        ErrorCode error = validateTransition(intern.getStatus(), request.getStatus());
+        if (error != null) {
+            throw ExceptionUtil.fromErrorCode(error);
+        }
+
+        String approvedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        intern.setStatus(request.getStatus());
+        intern.setNote(request.getNote());
+        intern.setApprovedBy(approvedBy);
+
+        internshipRequestFileRepository.save(intern);
+        
+        return internAssignHandelMapper.mapEntityToResponse(intern);
+
+    }
+
+    private ErrorCode validateTransition(StatusRequestFile current, StatusRequestFile next) {
+        return switch (current) {
+            case PENDING -> {
+                if (next == StatusRequestFile.APPROVED 
+                || next == StatusRequestFile.INPROGRESS 
+                || next == StatusRequestFile.REJECTED) {
+                    yield null;
+                }
+                yield ErrorCode.INVALID_TRANSITION_FROM_PENDING;
+            }
+            case APPROVED -> {
+                if (next == StatusRequestFile.COMPLETED) yield null;
+                yield ErrorCode.INVALID_TRANSITION_FROM_APPROVED_INPROGRESS;
+            }
+            case INPROGRESS -> {
+                if (next == StatusRequestFile.COMPLETED) yield null;
+                yield ErrorCode.INVALID_TRANSITION_FROM_APPROVED_INPROGRESS;
+            }
+            default -> ErrorCode.INVALID_STATUS_TRANSITION;
+        };
+    }
 
 }

@@ -13,4 +13,5 @@ import com.demo.autocareer.model.Student;
 @Repository
 public interface InternshipSemesterRepository extends JpaRepository<InternshipSemester, Long>, JpaSpecificationExecutor<InternshipSemester>{
     Optional<InternshipSemester> findByStudent(Student student);
+    boolean existsByStudentAndSemester(Student student, Semester semester);
 }

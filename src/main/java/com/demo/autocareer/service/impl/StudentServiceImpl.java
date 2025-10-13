@@ -55,7 +55,9 @@ import com.demo.autocareer.mapper.StudentMapper;
 import com.demo.autocareer.mapper.StudentProMapper;
 import com.demo.autocareer.model.InternDeclareRequest;
 import com.demo.autocareer.repository.ApplyJobRepository;
+import com.demo.autocareer.repository.SemesterRepository;
 import com.demo.autocareer.repository.JobDetailRepository;
+import com.demo.autocareer.repository.InternshipSemesterRepository;
 import com.demo.autocareer.utils.PageUtils;
 
 
@@ -92,6 +94,10 @@ public class StudentServiceImpl implements StudentService {
     @Autowired
     private ApplyJobRepository applyJobRepository;
     @Autowired
+    private SemesterRepository semesterRepository;
+    @Autowired
+    private InternshipSemesterRepository internshipSemesterRepository;
+    @Autowired
     private ApplyJobMapper applyJobMapper;
     @Autowired
     private StudentMapper studentMapper;
@@ -101,6 +107,7 @@ public class StudentServiceImpl implements StudentService {
     private InternDeclareRequestMapper internDeclareMapper;
 
     private final BaseSpecification<ApplyJob> baseSpecification = new BaseSpecification<>();
+    private final BaseSpecification<InternDeclareRequest> baseSpecificationDeclared = new BaseSpecification<>();
 
     @Override
     public Student getStudentFromToken() {
@@ -165,7 +172,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public InternDeclareRequestDTOResponse declareIntern(InternDeclareRequestDTORequest dto){
         Student student = getStudentFromToken();
-        Semester semester = dto.getSemester();
+        Semester semester = semesterRepository.findById(dto.getSemesterId())
+        .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy học kỳ!"));
+
 
         // Check trùng
         if (internDeclareRepository.existsBySemesterAndStudent(semester, student)) {
@@ -173,9 +182,17 @@ public class StudentServiceImpl implements StudentService {
                 "Sinh viên đã khai báo thực tập cho học kỳ này. Không thể khai báo thêm."
             );
         }
+
+        if (!internshipSemesterRepository.existsByStudentAndSemester(student, semester)) {
+            throw new IllegalArgumentException(
+                "Sinh viên không thuộc học kỳ thực tập này. Không thể khai báo thêm."
+            );
+        }
+
         InternDeclareRequest entity = internDeclareMapper.mapRequestToEntity(dto);
         entity.setStudent(student);
         entity.setStatusIntern(StatusIntern.WAITING);
+        entity.setSemester(semester);
         internDeclareRepository.save(entity);
         return internDeclareMapper.mapEntityToResponse(entity);
     }
@@ -202,5 +219,29 @@ public class StudentServiceImpl implements StudentService {
         Page<ApplyJob> page = applyJobRepository.findAll(spec, sortPageable);
         Page<ApplyJobDTOResponse> result = page.map(applyJobMapper::mapEntityToResponse);
         return PageUtils.fromPage(result);
+    }
+
+    @Override
+    public BasePageResponse<InternDeclareRequestDTOResponse> getRequestDeclare(BaseFilterRequest request, Pageable pageable){
+        Student student = getStudentFromToken();
+        Specification<InternDeclareRequest> spec = baseSpecificationDeclared
+            .build(request, "position", "statusIntern", "createdAt", null, null, null)
+            .and((root, query, cb) -> cb.equal(root.get("student"), student));
+
+        Sort sort = baseSpecification.buildSort(request, "position");
+        Pageable sortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<InternDeclareRequest> page = internDeclareRepository.findAll(spec, sortPageable);
+        Page<InternDeclareRequestDTOResponse> result = page.map(internDeclareMapper::mapEntityToResponse);
+        return PageUtils.fromPage(result);
+    }
+
+    @Override
+    public InternDeclareRequestDTOResponse declareInternDetail(Long id){
+        Student student = getStudentFromToken();
+        InternDeclareRequest intern = internDeclareRepository.findById(id)
+                .orElseThrow(() -> ExceptionUtil.fromErrorCode(ErrorCode.INTERN_DECLARE_NOT_FOUND));
+
+        return internDeclareMapper.mapEntityToResponse(intern);
     }
 }

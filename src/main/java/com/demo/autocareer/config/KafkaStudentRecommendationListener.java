@@ -49,7 +49,7 @@ public class KafkaStudentRecommendationListener {
                     Double score = ((Number) job.get("score")).doubleValue();
                     redisTemplate.opsForZSet().incrementScore(realtimeKey, jobId, score);
                 }
-                redisTemplate.expire(realtimeKey, Duration.ofHours(6));
+                redisTemplate.expire(realtimeKey, Duration.ofHours(3));
                 log.info("✅ Updated Realtime Redis cache (batch) for student {}", studentId);
 
             } else if (message.containsKey("jobId")) {

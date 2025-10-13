@@ -36,4 +36,14 @@ public interface ApplyJobRepository extends JpaRepository<ApplyJob, Long>, JpaSp
         """)
     List<Object[]> countApplicantsByMonth(@Param("organizationId") Long organizationId);
 
+    @Query("""
+        SELECT MONTH(a.createdAt) AS month, a.applyJobStatus AS status, COUNT(a) 
+        FROM ApplyJob a
+        WHERE a.job.organization.id = :organizationId
+        AND a.job.organization.organizationType = com.demo.autocareer.model.enums.OrganizationType.COMPANY
+        GROUP BY MONTH(a.createdAt), a.applyJobStatus
+        ORDER BY month
+    """)
+    List<Object[]> countApplicantsByMonthAndStatus(@Param("organizationId") Long organizationId);
+
 }

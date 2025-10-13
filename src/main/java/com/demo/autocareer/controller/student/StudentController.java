@@ -29,6 +29,7 @@ import com.demo.autocareer.dto.request.StudentBehaviorDTORequest;
 import com.demo.autocareer.dto.request.StudentDTORequest;
 import com.demo.autocareer.dto.response.ApplyJobDTOResponse;
 import com.demo.autocareer.dto.response.BasePageResponse;
+import com.demo.autocareer.dto.response.InternDeclareRequestDTOResponse;
 import com.demo.autocareer.dto.response.ResponseData;
 import com.demo.autocareer.dto.response.SaveJobDTOResponse;
 import com.demo.autocareer.service.ApplyJobService;
@@ -158,6 +159,28 @@ public class StudentController {
                 .data(null)
                 .build();
     } 
+
+    @GetMapping("/internRequest")
+    public ResponseData<BasePageResponse<InternDeclareRequestDTOResponse>> getListStatusRequest(
+                                    @ModelAttribute BaseFilterRequest baseFilterRequest,
+                                    @ModelAttribute BasePageRequest basePageRequest) {
+        Pageable pageable = basePageRequest.toPageable();
+        BasePageResponse<InternDeclareRequestDTOResponse> result = studentService.getRequestDeclare(baseFilterRequest, pageable);
+        return ResponseData.<BasePageResponse<InternDeclareRequestDTOResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("GET SUCCESS")
+                .data(result)
+                .build();
+    }
+
+    @GetMapping("/internDeclared/{id}")
+    public ResponseData<?> getProfileStudents(@PathVariable Long id) {
+        return ResponseData.builder()
+                .status(HttpStatus.OK.value())
+                .message("SUCCESS")
+                .data(studentService.declareInternDetail(id))
+                .build();
+    }
 }
 
 
